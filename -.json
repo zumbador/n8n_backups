@@ -1,698 +1,221 @@
 {
-  "createdAt": "2025-06-12T23:58:19.799Z",
-  "updatedAt": "2025-06-12T23:59:19.269Z",
-  "id": "94OiZUYcx2PPfBpH",
-  "name": "My workflow 7",
+  "createdAt": "2025-06-08T04:37:26.473Z",
+  "updatedAt": "2025-06-08T21:58:54.080Z",
+  "id": "RWRInHnUMu8eOZU1",
+  "name": "Anthropic AI Agent: Claude Sonnet Opus 4 with Think and Web Search tool",
   "active": false,
   "isArchived": true,
   "nodes": [
     {
-      "parameters": {},
-      "id": "0407aeb9-ceb1-41e4-9b70-5aa90a755574",
-      "name": "On clicking 'execute'",
-      "type": "n8n-nodes-base.manualTrigger",
-      "position": [
-        -240,
-        120
-      ],
-      "typeVersion": 1
-    },
-    {
       "parameters": {
-        "content": "## Subworkflow",
-        "height": 750.8363163824032,
-        "width": 2086.845881354743,
-        "color": 6
-      },
-      "id": "22563202-2577-4ab6-b33a-b70b102c6801",
-      "name": "Sticky Note",
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -133.5,
-        389
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "filters": {},
-        "requestOptions": {}
-      },
-      "id": "e00b4c1e-dd09-420e-ac18-a1a3d64b92bc",
-      "name": "n8n",
-      "type": "n8n-nodes-base.n8n",
-      "position": [
-        -20,
-        220
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "8d513345-6484-431f-afb7-7cf045c90f4f",
-              "name": "Done",
-              "type": "boolean",
-              "value": true
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "8edfbaea-afef-41ef-bc39-fa5fbefe089f",
-      "name": "Return",
-      "type": "n8n-nodes-base.set",
-      "position": [
-        1960,
-        780
-      ],
-      "typeVersion": 3.3
-    },
-    {
-      "parameters": {
-        "url": "={{ $json.download_url }}",
-        "options": {}
-      },
-      "id": "02fb7be5-7305-44b6-ac07-28f83ec53d40",
-      "name": "Get File",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        640,
-        630
-      ],
-      "typeVersion": 4.2
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "version": 1,
-            "leftValue": "",
-            "caseSensitive": true,
-            "typeValidation": "strict"
-          },
-          "combinator": "and",
-          "conditions": [
-            {
-              "id": "45ce825e-9fa6-430c-8931-9aaf22c42585",
-              "operator": {
-                "type": "string",
-                "operation": "empty",
-                "singleValue": true
-              },
-              "leftValue": "={{ $json.content }}",
-              "rightValue": ""
-            },
-            {
-              "id": "9619a55f-7fb1-4f24-b1a7-7aeb82365806",
-              "operator": {
-                "type": "string",
-                "operation": "notExists",
-                "singleValue": true
-              },
-              "leftValue": "={{ $json.error }}",
-              "rightValue": ""
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "c16f0013-1bf3-4ace-ac59-77038482e399",
-      "name": "If file too large",
-      "type": "n8n-nodes-base.if",
-      "position": [
-        420,
-        705
-      ],
-      "typeVersion": 2
-    },
-    {
-      "parameters": {},
-      "id": "4f92bde1-1f1d-493f-9f8a-2d8ab9b1d1eb",
-      "name": "Merge Items",
-      "type": "n8n-nodes-base.merge",
-      "position": [
-        860,
-        780
-      ],
-      "typeVersion": 2
-    },
-    {
-      "parameters": {
-        "jsCode": "const orderJsonKeys = (jsonObj) => {\n  const ordered = {};\n  Object.keys(jsonObj).sort().forEach(key => {\n    ordered[key] = jsonObj[key];\n  });\n  return ordered;\n}\n\n// Check if file returned with content\nif (Object.keys($input.all()[0].json).includes(\"content\")) {\n  // Decode base64 content and parse JSON\n  const origWorkflow = JSON.parse(Buffer.from($input.all()[0].json.content, 'base64').toString());\n  const n8nWorkflow = $input.all()[1].json;\n  \n  // Order JSON objects\n  const orderedOriginal = orderJsonKeys(origWorkflow);\n  const orderedActual = orderJsonKeys(n8nWorkflow);\n\n  // Determine difference\n  if (JSON.stringify(orderedOriginal) === JSON.stringify(orderedActual)) {\n    $input.all()[0].json.github_status = \"same\";\n  } else {\n    $input.all()[0].json.github_status = \"different\";\n    $input.all()[0].json.n8n_data_stringy = JSON.stringify(orderedActual, null, 2);\n  }\n  $input.all()[0].json.content_decoded = orderedOriginal;\n// No file returned / new workflow\n} else if (Object.keys($input.all()[0].json).includes(\"data\")) {\n  const origWorkflow = JSON.parse($input.all()[0].json.data);\n  const n8nWorkflow = $input.all()[1].json;\n  \n  // Order JSON objects\n  const orderedOriginal = orderJsonKeys(origWorkflow);\n  const orderedActual = orderJsonKeys(n8nWorkflow);\n\n  // Determine difference\n  if (JSON.stringify(orderedOriginal) === JSON.stringify(orderedActual)) {\n    $input.all()[0].json.github_status = \"same\";\n  } else {\n    $input.all()[0].json.github_status = \"different\";\n    $input.all()[0].json.n8n_data_stringy = JSON.stringify(orderedActual, null, 2);\n  }\n  $input.all()[0].json.content_decoded = orderedOriginal;\n\n} else {\n  // Order JSON object\n  const n8nWorkflow = $input.all()[1].json;\n  const orderedActual = orderJsonKeys(n8nWorkflow);\n  \n  // Proper formatting\n  $input.all()[0].json.github_status = \"new\";\n  $input.all()[0].json.n8n_data_stringy = JSON.stringify(orderedActual, null, 2);\n}\n\n// Return items\nreturn $input.all();"
-      },
-      "id": "6386b85e-1769-45f0-ab26-ec66f7bc16d5",
-      "name": "isDiffOrNew",
-      "type": "n8n-nodes-base.code",
-      "position": [
-        1080,
-        780
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "dataType": "string",
-        "value1": "={{$json.github_status}}",
-        "rules": {
-          "rules": [
-            {
-              "value2": "same"
-            },
-            {
-              "value2": "different",
-              "output": 1
-            },
-            {
-              "value2": "new",
-              "output": 2
-            }
-          ]
+        "public": true,
+        "options": {
+          "allowFileUploads": true
         }
       },
-      "id": "3b14fbf6-4e79-4afd-9ada-c2553d90041a",
-      "name": "Check Status",
-      "type": "n8n-nodes-base.switch",
+      "id": "0cf076fe-c6be-4336-8cc6-300d13cfc058",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
       "position": [
-        1300,
-        759
+        -400,
+        100
       ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {},
-      "id": "d2885b18-e717-4600-ac88-cc0360d15ad0",
-      "name": "Same file - Do nothing",
-      "type": "n8n-nodes-base.noOp",
-      "position": [
-        1740,
-        580
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {},
-      "id": "a5f34fff-c940-431e-b590-62d5867fd42b",
-      "name": "File is different",
-      "type": "n8n-nodes-base.noOp",
-      "position": [
-        1520,
-        780
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {},
-      "id": "f5e4444d-7de7-4795-bab3-ddd7c032864d",
-      "name": "File is new",
-      "type": "n8n-nodes-base.noOp",
-      "position": [
-        1520,
-        980
-      ],
-      "typeVersion": 1
+      "webhookId": "n8n-chat-trigger"
     },
     {
       "parameters": {
-        "resource": "file",
-        "owner": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $('Globals').item.json.repo.owner }}"
-        },
-        "repository": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $('Globals').item.json.repo.name }}"
-        },
-        "filePath": "={{ $('Globals').item.json.repo.path }}{{$('Execute Workflow Trigger').first().json.id}}.json",
-        "fileContent": "={{$('isDiffOrNew').item.json[\"n8n_data_stringy\"]}}",
-        "commitMessage": "={{$('Execute Workflow Trigger').first().json.name}} ({{$json.github_status}})"
-      },
-      "id": "56aa3648-5a19-405c-9563-1e7559b693e4",
-      "name": "Create new file",
-      "type": "n8n-nodes-base.github",
-      "position": [
-        1740,
-        980
-      ],
-      "webhookId": "e5e4ce8b-74a3-4b94-83ca-351edc280faf",
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "operation": "edit",
-        "owner": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $('Globals').item.json.repo.owner }}"
-        },
-        "repository": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $('Globals').item.json.repo.name }}"
-        },
-        "filePath": "={{ $('Globals').item.json.repo.path }}{{$('Execute Workflow Trigger').first().json.id}}.json",
-        "fileContent": "={{$('isDiffOrNew').item.json[\"n8n_data_stringy\"]}}",
-        "commitMessage": "={{$('Execute Workflow Trigger').first().json.name}} ({{$json.github_status}})"
-      },
-      "id": "f1f09d78-4f75-47e6-bc3e-abd170de14e8",
-      "name": "Edit existing file",
-      "type": "n8n-nodes-base.github",
-      "position": [
-        1740,
-        780
-      ],
-      "webhookId": "a57e71de-4960-4d25-a59f-1a9e2e96aff5",
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "id": "b275e63d-c6a6-4837-90eb-b326daf98e89",
-      "name": "Loop Over Items",
-      "type": "n8n-nodes-base.splitInBatches",
-      "position": [
-        200,
-        220
-      ],
-      "typeVersion": 3
-    },
-    {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "hours",
-              "hoursInterval": 2
-            }
-          ]
+        "options": {
+          "systemMessage": "You are an expert n8n workflow automation specialist powered by Claude Opus. You excel at:\n\n**Advanced Capabilities:**\n- Complex workflow architecture and design\n- Custom node development and advanced scripting\n- Performance optimization for large-scale automations\n- Multi-step integration strategies\n- Advanced data transformation and processing\n- Enterprise-level automation solutions\n\n**Core Expertise:**\n- All n8n node types and their advanced configurations\n- Webhook and API integration strategies\n- Error handling and robust workflow design\n- Database operations and data flow optimization\n- Custom JavaScript/Python code integration\n- Workflow security and credential management\n\n**Response Guidelines:**\n- Provide detailed, step-by-step implementation guides\n- Include complete JSON configuration examples\n- Suggest multiple approaches for complex problems\n- Focus on scalable, maintainable solutions\n- Emphasize best practices and enterprise considerations\n- Break down complex workflows into logical components\n\nAlways provide expert-level guidance with concrete, actionable solutions.",
+          "maxIterations": 10,
+          "returnIntermediateSteps": false
         }
       },
-      "id": "6ab47786-8e01-40fb-9572-cc607695ef2b",
-      "name": "Schedule Trigger",
-      "type": "n8n-nodes-base.scheduleTrigger",
+      "id": "2340e96e-41dc-4429-9fbc-47ce59b039b1",
+      "name": "AI Agent (N8N Expert)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
       "position": [
-        -240,
+        32,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-3-opus-20240229",
+          "cachedResultName": "Claude 3 Opus"
+        },
+        "options": {
+          "temperature": 0.1,
+          "thinking": false
+        }
+      },
+      "id": "aaf0e7d2-69d6-4c3c-a64f-16cb1c2f0c0f",
+      "name": "Claude Opus Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -180,
         320
       ],
-      "typeVersion": 1.2
+      "credentials": {
+        "anthropicApi": {
+          "id": "l8nsyOPKZPhdPs1R",
+          "name": "Anthropic account"
+        }
+      }
     },
     {
       "parameters": {
-        "content": "## Backup to GitHub \nThis workflow will backup all instance workflows to GitHub.\n\nThe files are saved `ID.json` for the filename.\n\n### Setup\nOpen `Globals` node and update the values below 👇\n\n- **repo.owner:** your Github username\n- **repo.name:** the name of your repository\n- **repo.path:** the folder to use within the repository. If it doesn't exist it will be created.\n\n\nIf your username was `john-doe` and your repository was called `n8n-backups` and you wanted the workflows to go into a `workflows` folder you would set:\n\n- repo.owner - john-doe\n- repo.name - n8n-backups\n- repo.path - workflows/\n\n\nThe workflow calls itself using a subworkflow, to help reduce memory usage.",
-        "height": 601,
-        "width": 371,
-        "color": 4
+        "contextWindowLength": 15
       },
-      "id": "27a393cf-fd53-472b-ad3c-916fed7fe4c1",
-      "name": "Sticky Note1",
-      "type": "n8n-nodes-base.stickyNote",
+      "id": "bd9cff9a-0c6f-460f-bcc8-4909a6d36b0c",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.2,
       "position": [
-        -375.5,
-        -121
-      ],
-      "typeVersion": 1
+        -60,
+        320
+      ]
     },
     {
       "parameters": {
-        "content": "## Main workflow loop",
-        "height": 435,
-        "width": 886,
-        "color": 7
+        "name": "n8n_documentation_search",
+        "description": "Search current n8n documentation, node references, and community solutions for accurate information",
+        "jsCode": "\n// N8N Documentation Search Tool\nconst searchQuery = $parameter.query;\nconst category = $parameter.category || 'general';\n\n// Simulate documentation search with common n8n topics\nconst documentationResponses = {\n    'webhook': 'Webhooks in n8n are HTTP endpoints that can receive data from external services. Use the Webhook Trigger node to listen for incoming requests.',\n    'api': 'For API integrations, use the HTTP Request node. Configure authentication in credentials and use expressions for dynamic data.',\n    'error': 'Error handling in n8n can be implemented using the Error Trigger node or by configuring Continue On Fail in node settings.',\n    'loop': 'Use the Split in Batches node to process large datasets in chunks, or the Item Lists node for simple array operations.',\n    'code': 'The Code node allows JavaScript execution. Access input data with $input.all() and return results with return statement.',\n    'schedule': 'Use the Schedule Trigger node (formerly Cron) to run workflows on a schedule. Configure timing using cron expressions or intervals.',\n    'data': 'Data transformation can be done with Set node, Edit Fields node, or Code node for complex operations.',\n    'credential': 'Credentials are stored securely in n8n. Create them in Settings > Credentials and reference in nodes that need authentication.'\n};\n\n// Find relevant documentation\nlet response = documentationResponses[searchQuery.toLowerCase()] || \n              `Documentation for \"${searchQuery}\" - This would search n8n docs for: ${searchQuery}. Category: ${category}`;\n\nreturn [{\n    json: {\n        query: searchQuery,\n        category: category,\n        result: response,\n        source: 'n8n-docs'\n    }\n}];\n"
       },
-      "id": "fa28e794-9303-4ac6-936d-115e15a11a66",
-      "name": "Sticky Note2",
-      "type": "n8n-nodes-base.stickyNote",
+      "id": "c070b38b-0d19-44e6-8230-cf6602d23f84",
+      "name": "Documentation Search Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
       "position": [
-        -303,
-        45
-      ],
-      "typeVersion": 1
+        300,
+        320
+      ]
     },
     {
       "parameters": {
-        "resource": "file",
-        "operation": "get",
-        "owner": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $json.repo.owner }}"
-        },
-        "repository": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $json.repo.name }}"
-        },
-        "filePath": "={{ $json.repo.path }}{{ $('Execute Workflow Trigger').item.json.id }}.json",
-        "asBinaryProperty": false,
-        "additionalParameters": {}
+        "name": "workflow_analyzer",
+        "description": "Analyze n8n workflow JSON for optimization opportunities, errors, and best practices",
+        "jsCode": "\n// Workflow Analyzer Tool\nconst workflowJson = $parameter.workflow_json;\nconst analysisType = $parameter.analysis_type || 'general';\n\nlet analysis = {\n    issues: [],\n    recommendations: [],\n    score: 85\n};\n\ntry {\n    const workflow = typeof workflowJson === 'string' ? JSON.parse(workflowJson) : workflowJson;\n\n    // Basic analysis\n    if (!workflow.nodes || workflow.nodes.length === 0) {\n        analysis.issues.push('Workflow has no nodes');\n        analysis.score -= 30;\n    }\n\n    // Check for error handling\n    const hasErrorHandling = workflow.nodes.some(node => \n        node.type.includes('error') || \n        (node.parameters && node.parameters.continueOnFail)\n    );\n\n    if (!hasErrorHandling) {\n        analysis.recommendations.push('Add error handling with Error Trigger or Continue On Fail settings');\n        analysis.score -= 10;\n    }\n\n    // Check for credentials\n    const nodesWithCreds = workflow.nodes.filter(node => node.credentials).length;\n    if (nodesWithCreds > 0) {\n        analysis.recommendations.push('Ensure all credentials are properly configured and secured');\n    }\n\n    analysis.nodeCount = workflow.nodes.length;\n    analysis.analysisType = analysisType;\n\n} catch (error) {\n    analysis.issues.push('Invalid JSON format provided');\n    analysis.score = 0;\n}\n\nreturn [{\n    json: {\n        analysis: analysis,\n        timestamp: new Date().toISOString()\n    }\n}];\n"
       },
-      "id": "9acd553e-9a1c-45ea-a51c-22d782c367aa",
-      "name": "Get file data",
-      "type": "n8n-nodes-base.github",
+      "id": "eb3a5bd8-b6ce-4081-82b0-73782ae5cdab",
+      "name": "Workflow Analyzer Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
       "position": [
-        200,
-        705
-      ],
-      "webhookId": "743111c3-2c21-4658-8097-a9fe966f43d2",
+        60,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "name": "error_troubleshooter",
+        "description": "Diagnose and provide solutions for common n8n errors and issues",
+        "jsCode": "\n// Error Troubleshooter Tool\nconst errorMessage = $parameter.error_message;\nconst nodeType = $parameter.node_type || 'unknown';\nconst context = $parameter.context || '';\n\nconst commonSolutions = {\n    'credential': {\n        category: 'Authentication',\n        solutions: [\n            'Verify API credentials are correct and not expired',\n            'Check if credential type matches the node requirements',\n            'Ensure proper permissions are granted for the credential'\n        ]\n    },\n    'connection': {\n        category: 'Connection Issues',\n        solutions: [\n            'Check network connectivity and firewall settings',\n            'Verify API endpoints are accessible',\n            'Test with a simple HTTP Request first'\n        ]\n    },\n    'data': {\n        category: 'Data Format',\n        solutions: [\n            'Verify input data structure matches expected format',\n            'Use Code node to transform data if needed',\n            'Check for null or undefined values'\n        ]\n    },\n    'memory': {\n        category: 'Memory/Performance',\n        solutions: [\n            'Process data in smaller batches using Split in Batches',\n            'Optimize expressions and reduce unnecessary data',\n            'Consider using streaming for large datasets'\n        ]\n    },\n    'rate_limit': {\n        category: 'Rate Limiting',\n        solutions: [\n            'Add delays between requests using Wait node',\n            'Implement exponential backoff with retry logic',\n            'Check API rate limits and adjust accordingly'\n        ]\n    }\n};\n\n// Analyze error message\nlet category = 'general';\nlet solutions = ['Check n8n logs for detailed error information'];\n\nObject.keys(commonSolutions).forEach(key => {\n    if (errorMessage.toLowerCase().includes(key) || \n        errorMessage.toLowerCase().includes(key.replace('_', ' '))) {\n        category = key;\n        solutions = commonSolutions[key].solutions;\n    }\n});\n\nconst diagnosis = {\n    error_message: errorMessage,\n    node_type: nodeType,\n    category: commonSolutions[category]?.category || 'General',\n    solutions: solutions,\n    prevention_tips: [\n        'Enable Continue On Fail for non-critical operations',\n        'Add proper error handling with Error Trigger node',\n        'Test workflows with various data scenarios',\n        'Monitor workflow execution regularly'\n    ]\n};\n\nreturn [{\n    json: {\n        diagnosis: diagnosis,\n        context: context,\n        analyzed_at: new Date().toISOString()\n    }\n}];\n"
+      },
+      "id": "8b8ea907-7d98-4df0-8989-976093d82ea7",
+      "name": "Error Troubleshooter Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [
+        180,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "name": "template_generator",
+        "description": "Generate complete n8n workflow templates based on requirements",
+        "jsCode": "// Template Generator Tool - Corrected Implementation\nconst query = $parameter.query;\ntry {\n  const requirements = typeof query === 'string' ? JSON.parse(query) : query;\n  const templateType = requirements.type || 'webhook';\n  const complexity = requirements.complexity || 'basic';\n  const template = { nodes: [], connections: {} };\n  switch(templateType.toLowerCase()) {\n    case 'webhook':\n      template.nodes.push({ type: 'n8n-nodes-base.webhook', parameters: { httpMethod: 'GET', responseMode: 'onReceived' } });\n      break;\n    case 'http-request':\n      template.nodes.push({ type: 'n8n-nodes-base.httpRequest', parameters: { url: 'https://api.example.com', options: {} } });\n      break;\n    default:\n      throw new Error('Unsupported template type');\n  }\n  if (complexity === 'advanced') {\n    template.nodes.push({ type: 'n8n-nodes-base.errorTrigger', parameters: { continueOnFail: true } });\n  }\n  return JSON.stringify({ template, instructions: `Generated ${complexity} ${templateType} workflow`, timestamp: new Date().toISOString() });\n} catch (error) {\n  return JSON.stringify({ error: true, message: error.message, stack: error.stack });\n}"
+      },
+      "id": "1013c37e-b2e1-408e-b555-08c52267dfc9",
+      "name": "Template Generator",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
       "typeVersion": 1,
-      "alwaysOutputData": true,
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "6cf546c5-5737-4dbd-851b-17d68e0a3780",
-              "name": "repo.owner",
-              "type": "string",
-              "value": "john-doe"
-            },
-            {
-              "id": "452efa28-2dc6-4ea3-a7a2-c35d100d0382",
-              "name": "repo.name",
-              "type": "string",
-              "value": "n8n-backup"
-            },
-            {
-              "id": "81c4dc54-86bf-4432-a23f-22c7ea831e74",
-              "name": "repo.path",
-              "type": "string",
-              "value": "workflows/"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "c4116e81-ff99-4d91-a549-7e6bde0aa2db",
-      "name": "Globals",
-      "type": "n8n-nodes-base.set",
-      "position": [
-        -20,
-        705
-      ],
-      "typeVersion": 3.4
-    },
-    {
-      "parameters": {
-        "content": "## Edit this node 👇",
-        "height": 80,
-        "width": 150,
-        "color": 4
-      },
-      "id": "eb7ffb53-b080-4126-9f47-f9b7a11773f5",
-      "name": "Sticky Note3",
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        0,
-        660
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "inputSource": "passthrough"
-      },
-      "id": "b8c3e3d9-98ee-41cc-8644-361d49eb228d",
-      "name": "Execute Workflow Trigger",
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "position": [
-        -240,
-        780
-      ],
-      "typeVersion": 1.1
-    },
-    {
-      "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "mode": "id",
-          "value": "={{ $workflow.id }}"
-        },
-        "workflowInputs": {
-          "value": {},
-          "schema": [],
-          "mappingMode": "defineBelow",
-          "matchingColumns": [],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "mode": "each",
-        "options": {}
-      },
-      "id": "030b83c8-5649-4730-aa15-512af424c547",
-      "name": "Execute Workflow",
-      "type": "n8n-nodes-base.executeWorkflow",
       "position": [
         420,
-        220
-      ],
-      "typeVersion": 1.2
-    },
-    {
-      "parameters": {
-        "content": "### 💡 **Want to learn advanced n8n skills and earn money building workflows?**\n‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎Check out [Scrapes Academy](https://www.skool.com/scrapes/about?ref=21f10ad99f4d46ba9b8aaea8c9f58c34)",
-        "width": 640,
-        "color": 4
-      },
-      "id": "3a6d7fce-1992-46ea-873f-fe1df4d9d920",
-      "name": "Sticky Note16",
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        80,
-        -140
-      ],
-      "typeVersion": 1
+        320
+      ]
     }
   ],
   "connections": {
-    "n8n": {
+    "Chat Trigger": {
       "main": [
         [
           {
-            "node": "Loop Over Items",
+            "node": "AI Agent (N8N Expert)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Globals": {
-      "main": [
+    "Window Buffer Memory": {
+      "ai_memory": [
         [
           {
-            "node": "Get file data",
-            "type": "main",
+            "node": "AI Agent (N8N Expert)",
+            "type": "ai_memory",
             "index": 0
           }
         ]
       ]
     },
-    "Get File": {
-      "main": [
+    "Claude Opus Model": {
+      "ai_languageModel": [
         [
           {
-            "node": "Merge Items",
-            "type": "main",
+            "node": "AI Agent (N8N Expert)",
+            "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "File is new": {
-      "main": [
+    "Workflow Analyzer Tool": {
+      "ai_tool": [
         [
           {
-            "node": "Create new file",
-            "type": "main",
+            "node": "AI Agent (N8N Expert)",
+            "type": "ai_tool",
             "index": 0
           }
         ]
       ]
     },
-    "Merge Items": {
-      "main": [
+    "Error Troubleshooter Tool": {
+      "ai_tool": [
         [
           {
-            "node": "isDiffOrNew",
-            "type": "main",
+            "node": "AI Agent (N8N Expert)",
+            "type": "ai_tool",
             "index": 0
           }
         ]
       ]
     },
-    "isDiffOrNew": {
-      "main": [
+    "Documentation Search Tool": {
+      "ai_tool": [
         [
           {
-            "node": "Check Status",
-            "type": "main",
+            "node": "AI Agent (N8N Expert)",
+            "type": "ai_tool",
             "index": 0
           }
         ]
       ]
     },
-    "Check Status": {
-      "main": [
+    "Template Generator": {
+      "ai_tool": [
         [
           {
-            "node": "Same file - Do nothing",
-            "type": "main",
+            "node": "AI Agent (N8N Expert)",
+            "type": "ai_tool",
             "index": 0
-          }
-        ],
-        [
-          {
-            "node": "File is different",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "File is new",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get file data": {
-      "main": [
-        [
-          {
-            "node": "If file too large",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create new file": {
-      "main": [
-        [
-          {
-            "node": "Return",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Loop Over Items": {
-      "main": [
-        [],
-        [
-          {
-            "node": "Execute Workflow",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute Workflow": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Schedule Trigger": {
-      "main": [
-        [
-          {
-            "node": "n8n",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "File is different": {
-      "main": [
-        [
-          {
-            "node": "Edit existing file",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If file too large": {
-      "main": [
-        [
-          {
-            "node": "Get File",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Merge Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Edit existing file": {
-      "main": [
-        [
-          {
-            "node": "Return",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "On clicking 'execute'": {
-      "main": [
-        [
-          {
-            "node": "n8n",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Same file - Do nothing": {
-      "main": [
-        [
-          {
-            "node": "Return",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute Workflow Trigger": {
-      "main": [
-        [
-          {
-            "node": "Globals",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Merge Items",
-            "type": "main",
-            "index": 1
           }
         ]
       ]
@@ -702,9 +225,11 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "8477c2d3-f2d8-419d-b649-eb2b690fa3f7",
-  "triggerCount": 0,
+  "versionId": "3db7bbda-06a0-4aa4-8130-b6d1a893cc22",
+  "triggerCount": 1,
   "tags": []
 }
