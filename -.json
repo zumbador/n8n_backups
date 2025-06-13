@@ -1,235 +1,31 @@
 {
-  "createdAt": "2025-06-08T04:37:26.473Z",
-  "updatedAt": "2025-06-08T21:58:54.080Z",
-  "id": "RWRInHnUMu8eOZU1",
-  "name": "Anthropic AI Agent: Claude Sonnet Opus 4 with Think and Web Search tool",
+  "createdAt": "2025-06-13T14:51:46.482Z",
+  "updatedAt": "2025-06-13T14:51:46.482Z",
+  "id": "UTUVl20TvZ6qiqDj",
+  "name": "My workflow 10",
   "active": false,
-  "isArchived": true,
+  "isArchived": false,
   "nodes": [
     {
-      "parameters": {
-        "public": true,
-        "options": {
-          "allowFileUploads": true
-        }
-      },
-      "id": "0cf076fe-c6be-4336-8cc6-300d13cfc058",
-      "name": "Chat Trigger",
-      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        -400,
-        100
-      ],
-      "webhookId": "n8n-chat-trigger"
-    },
-    {
-      "parameters": {
-        "options": {
-          "systemMessage": "You are an expert n8n workflow automation specialist powered by Claude Opus. You excel at:\n\n**Advanced Capabilities:**\n- Complex workflow architecture and design\n- Custom node development and advanced scripting\n- Performance optimization for large-scale automations\n- Multi-step integration strategies\n- Advanced data transformation and processing\n- Enterprise-level automation solutions\n\n**Core Expertise:**\n- All n8n node types and their advanced configurations\n- Webhook and API integration strategies\n- Error handling and robust workflow design\n- Database operations and data flow optimization\n- Custom JavaScript/Python code integration\n- Workflow security and credential management\n\n**Response Guidelines:**\n- Provide detailed, step-by-step implementation guides\n- Include complete JSON configuration examples\n- Suggest multiple approaches for complex problems\n- Focus on scalable, maintainable solutions\n- Emphasize best practices and enterprise considerations\n- Break down complex workflows into logical components\n\nAlways provide expert-level guidance with concrete, actionable solutions.",
-          "maxIterations": 10,
-          "returnIntermediateSteps": false
-        }
-      },
-      "id": "2340e96e-41dc-4429-9fbc-47ce59b039b1",
-      "name": "AI Agent (N8N Expert)",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 1.6,
-      "position": [
-        32,
-        100
-      ]
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "claude-3-opus-20240229",
-          "cachedResultName": "Claude 3 Opus"
-        },
-        "options": {
-          "temperature": 0.1,
-          "thinking": false
-        }
-      },
-      "id": "aaf0e7d2-69d6-4c3c-a64f-16cb1c2f0c0f",
-      "name": "Claude Opus Model",
-      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
-      "typeVersion": 1.3,
-      "position": [
-        -180,
-        320
-      ],
-      "credentials": {
-        "anthropicApi": {
-          "id": "l8nsyOPKZPhdPs1R",
-          "name": "Anthropic account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "contextWindowLength": 15
-      },
-      "id": "bd9cff9a-0c6f-460f-bcc8-4909a6d36b0c",
-      "name": "Window Buffer Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
-      "typeVersion": 1.2,
-      "position": [
-        -60,
-        320
-      ]
-    },
-    {
-      "parameters": {
-        "name": "n8n_documentation_search",
-        "description": "Search current n8n documentation, node references, and community solutions for accurate information",
-        "jsCode": "\n// N8N Documentation Search Tool\nconst searchQuery = $parameter.query;\nconst category = $parameter.category || 'general';\n\n// Simulate documentation search with common n8n topics\nconst documentationResponses = {\n    'webhook': 'Webhooks in n8n are HTTP endpoints that can receive data from external services. Use the Webhook Trigger node to listen for incoming requests.',\n    'api': 'For API integrations, use the HTTP Request node. Configure authentication in credentials and use expressions for dynamic data.',\n    'error': 'Error handling in n8n can be implemented using the Error Trigger node or by configuring Continue On Fail in node settings.',\n    'loop': 'Use the Split in Batches node to process large datasets in chunks, or the Item Lists node for simple array operations.',\n    'code': 'The Code node allows JavaScript execution. Access input data with $input.all() and return results with return statement.',\n    'schedule': 'Use the Schedule Trigger node (formerly Cron) to run workflows on a schedule. Configure timing using cron expressions or intervals.',\n    'data': 'Data transformation can be done with Set node, Edit Fields node, or Code node for complex operations.',\n    'credential': 'Credentials are stored securely in n8n. Create them in Settings > Credentials and reference in nodes that need authentication.'\n};\n\n// Find relevant documentation\nlet response = documentationResponses[searchQuery.toLowerCase()] || \n              `Documentation for \"${searchQuery}\" - This would search n8n docs for: ${searchQuery}. Category: ${category}`;\n\nreturn [{\n    json: {\n        query: searchQuery,\n        category: category,\n        result: response,\n        source: 'n8n-docs'\n    }\n}];\n"
-      },
-      "id": "c070b38b-0d19-44e6-8230-cf6602d23f84",
-      "name": "Documentation Search Tool",
-      "type": "@n8n/n8n-nodes-langchain.toolCode",
-      "typeVersion": 1.1,
-      "position": [
-        300,
-        320
-      ]
-    },
-    {
-      "parameters": {
-        "name": "workflow_analyzer",
-        "description": "Analyze n8n workflow JSON for optimization opportunities, errors, and best practices",
-        "jsCode": "\n// Workflow Analyzer Tool\nconst workflowJson = $parameter.workflow_json;\nconst analysisType = $parameter.analysis_type || 'general';\n\nlet analysis = {\n    issues: [],\n    recommendations: [],\n    score: 85\n};\n\ntry {\n    const workflow = typeof workflowJson === 'string' ? JSON.parse(workflowJson) : workflowJson;\n\n    // Basic analysis\n    if (!workflow.nodes || workflow.nodes.length === 0) {\n        analysis.issues.push('Workflow has no nodes');\n        analysis.score -= 30;\n    }\n\n    // Check for error handling\n    const hasErrorHandling = workflow.nodes.some(node => \n        node.type.includes('error') || \n        (node.parameters && node.parameters.continueOnFail)\n    );\n\n    if (!hasErrorHandling) {\n        analysis.recommendations.push('Add error handling with Error Trigger or Continue On Fail settings');\n        analysis.score -= 10;\n    }\n\n    // Check for credentials\n    const nodesWithCreds = workflow.nodes.filter(node => node.credentials).length;\n    if (nodesWithCreds > 0) {\n        analysis.recommendations.push('Ensure all credentials are properly configured and secured');\n    }\n\n    analysis.nodeCount = workflow.nodes.length;\n    analysis.analysisType = analysisType;\n\n} catch (error) {\n    analysis.issues.push('Invalid JSON format provided');\n    analysis.score = 0;\n}\n\nreturn [{\n    json: {\n        analysis: analysis,\n        timestamp: new Date().toISOString()\n    }\n}];\n"
-      },
-      "id": "eb3a5bd8-b6ce-4081-82b0-73782ae5cdab",
-      "name": "Workflow Analyzer Tool",
-      "type": "@n8n/n8n-nodes-langchain.toolCode",
-      "typeVersion": 1.1,
-      "position": [
-        60,
-        320
-      ]
-    },
-    {
-      "parameters": {
-        "name": "error_troubleshooter",
-        "description": "Diagnose and provide solutions for common n8n errors and issues",
-        "jsCode": "\n// Error Troubleshooter Tool\nconst errorMessage = $parameter.error_message;\nconst nodeType = $parameter.node_type || 'unknown';\nconst context = $parameter.context || '';\n\nconst commonSolutions = {\n    'credential': {\n        category: 'Authentication',\n        solutions: [\n            'Verify API credentials are correct and not expired',\n            'Check if credential type matches the node requirements',\n            'Ensure proper permissions are granted for the credential'\n        ]\n    },\n    'connection': {\n        category: 'Connection Issues',\n        solutions: [\n            'Check network connectivity and firewall settings',\n            'Verify API endpoints are accessible',\n            'Test with a simple HTTP Request first'\n        ]\n    },\n    'data': {\n        category: 'Data Format',\n        solutions: [\n            'Verify input data structure matches expected format',\n            'Use Code node to transform data if needed',\n            'Check for null or undefined values'\n        ]\n    },\n    'memory': {\n        category: 'Memory/Performance',\n        solutions: [\n            'Process data in smaller batches using Split in Batches',\n            'Optimize expressions and reduce unnecessary data',\n            'Consider using streaming for large datasets'\n        ]\n    },\n    'rate_limit': {\n        category: 'Rate Limiting',\n        solutions: [\n            'Add delays between requests using Wait node',\n            'Implement exponential backoff with retry logic',\n            'Check API rate limits and adjust accordingly'\n        ]\n    }\n};\n\n// Analyze error message\nlet category = 'general';\nlet solutions = ['Check n8n logs for detailed error information'];\n\nObject.keys(commonSolutions).forEach(key => {\n    if (errorMessage.toLowerCase().includes(key) || \n        errorMessage.toLowerCase().includes(key.replace('_', ' '))) {\n        category = key;\n        solutions = commonSolutions[key].solutions;\n    }\n});\n\nconst diagnosis = {\n    error_message: errorMessage,\n    node_type: nodeType,\n    category: commonSolutions[category]?.category || 'General',\n    solutions: solutions,\n    prevention_tips: [\n        'Enable Continue On Fail for non-critical operations',\n        'Add proper error handling with Error Trigger node',\n        'Test workflows with various data scenarios',\n        'Monitor workflow execution regularly'\n    ]\n};\n\nreturn [{\n    json: {\n        diagnosis: diagnosis,\n        context: context,\n        analyzed_at: new Date().toISOString()\n    }\n}];\n"
-      },
-      "id": "8b8ea907-7d98-4df0-8989-976093d82ea7",
-      "name": "Error Troubleshooter Tool",
-      "type": "@n8n/n8n-nodes-langchain.toolCode",
-      "typeVersion": 1.1,
-      "position": [
-        180,
-        320
-      ]
-    },
-    {
-      "parameters": {
-        "name": "template_generator",
-        "description": "Generate complete n8n workflow templates based on requirements",
-        "jsCode": "// Template Generator Tool - Corrected Implementation\nconst query = $parameter.query;\ntry {\n  const requirements = typeof query === 'string' ? JSON.parse(query) : query;\n  const templateType = requirements.type || 'webhook';\n  const complexity = requirements.complexity || 'basic';\n  const template = { nodes: [], connections: {} };\n  switch(templateType.toLowerCase()) {\n    case 'webhook':\n      template.nodes.push({ type: 'n8n-nodes-base.webhook', parameters: { httpMethod: 'GET', responseMode: 'onReceived' } });\n      break;\n    case 'http-request':\n      template.nodes.push({ type: 'n8n-nodes-base.httpRequest', parameters: { url: 'https://api.example.com', options: {} } });\n      break;\n    default:\n      throw new Error('Unsupported template type');\n  }\n  if (complexity === 'advanced') {\n    template.nodes.push({ type: 'n8n-nodes-base.errorTrigger', parameters: { continueOnFail: true } });\n  }\n  return JSON.stringify({ template, instructions: `Generated ${complexity} ${templateType} workflow`, timestamp: new Date().toISOString() });\n} catch (error) {\n  return JSON.stringify({ error: true, message: error.message, stack: error.stack });\n}"
-      },
-      "id": "1013c37e-b2e1-408e-b555-08c52267dfc9",
-      "name": "Template Generator",
-      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        420,
-        320
-      ]
+        0,
+        0
+      ],
+      "id": "40269e0c-0895-4b82-b569-f11c5c7a3e55",
+      "name": "When clicking ‘Execute workflow’"
     }
   ],
-  "connections": {
-    "Chat Trigger": {
-      "main": [
-        [
-          {
-            "node": "AI Agent (N8N Expert)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Window Buffer Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "AI Agent (N8N Expert)",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Claude Opus Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "AI Agent (N8N Expert)",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Workflow Analyzer Tool": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Agent (N8N Expert)",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Error Troubleshooter Tool": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Agent (N8N Expert)",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Documentation Search Tool": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Agent (N8N Expert)",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Template Generator": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Agent (N8N Expert)",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
+  "connections": {},
   "settings": {
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
+  "meta": null,
   "pinData": {},
-  "versionId": "3db7bbda-06a0-4aa4-8130-b6d1a893cc22",
-  "triggerCount": 1,
+  "versionId": "f43519e8-2fd2-427f-a583-69bc7a9f58de",
+  "triggerCount": 0,
   "tags": []
 }
