@@ -1,254 +1,837 @@
 {
-  "createdAt": "2025-06-13T00:32:03.973Z",
-  "updatedAt": "2025-06-13T00:32:53.258Z",
-  "id": "jJUpvtT5tlWrMvcM",
-  "name": "My workflow 9",
+  "createdAt": "2025-06-12T19:32:08.270Z",
+  "updatedAt": "2025-06-12T19:32:08.270Z",
+  "id": "zX1mjlqD4JOJSxb2",
+  "name": "twitter_reply_guy_agent",
   "active": false,
-  "isArchived": true,
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {
-        "formTitle": "Submit PDF",
-        "formDescription": "Submit pdf file",
-        "formFields": {
-          "values": [
-            {
-              "fieldLabel": "data",
-              "fieldType": "file"
-            }
-          ]
+        "trigger": [
+          "message"
+        ],
+        "channelId": {
+          "__rl": true,
+          "value": "C07RY6EQ6SH",
+          "mode": "id"
         },
-        "options": {}
+        "options": {
+          "userIds": "U07CUPY83ST,U05Q3C50S0Z,U05QEE5V57A,U08F1GJG0PQ"
+        }
       },
-      "type": "n8n-nodes-base.formTrigger",
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        -300,
+        140
+      ],
+      "id": "7918c091-fca5-464f-be7b-6284560c8025",
+      "name": "slack_trigger",
+      "webhookId": "27416a71-648c-4ef2-b6c9-47a9aff1a695"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "423cab91-b5b5-4f52-9ba6-f05345b63f5c",
+              "leftValue": "={{ $json.attachments[0].fields.map(o => o.value) }}",
+              "rightValue": "X (Twitter)",
+              "operator": {
+                "type": "array",
+                "operation": "contains",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.filter",
       "typeVersion": 2.2,
       "position": [
-        -160,
-        260
+        -80,
+        140
       ],
-      "id": "77e76e12-5bb6-4002-8d5a-71786d4165aa",
-      "name": "On form submission",
-      "webhookId": "296d51cf-550a-476f-be81-4aa1b5ebc4c4"
+      "id": "8bf20529-4b05-4c13-903e-0d7779f0280d",
+      "name": "filter_only_twitter_source"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "932940ad-cafb-4621-b97c-ec638528942e",
+              "leftValue": "={{ $json.attachments[0].author_name }}",
+              "rightValue": "@aiden_tooley",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        140
+      ],
+      "id": "28f4aa3f-5765-4bfe-8896-0e50b88c7e10",
+      "name": "exclude_self_account"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Here is the PDF content: {{ $json.text }}\n\nPlease analyze this document and return **exactly** the following, with no extra commentary:\n\nTITLE: [Document title]\n\nYEAR: [Publication year]\n\nAUTHOR: [Author name(s)]\n\nPAGES: [Total page count]\n\nOVERVIEW (50 words):  \n[Write a 50-word overview of the document.]\n\nSUMMARY (300 words):  \n[Write a 300-word summary targeting \"White paper\" and the document title.]\n\nMETA DESCRIPTION (160 chars max):  \n[Write a meta description, no more than 160 characters.]\nDescribe your new note here.\n\nReview 1 (50 - 100 words):\n[Write a 150-word posotive review of the document.]",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 2,
-      "position": [
-        500,
-        260
-      ],
-      "id": "ca85fb5d-03e4-4c3c-9b6f-48b3a28f77af",
-      "name": "AI Agent",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const input = $input.first();\nlet text = input.json.output || '';\n\n// Extract title from the AI output\nconst titleMatch = text.match(/TITLE: (.+)/);\nconst aiTitle = titleMatch ? titleMatch[1].trim() : 'Untitled';\n\n// Split text into chunks that fit Notion's 2000 char limit\nconst chunks = [];\nlet remainingText = text;\n\nwhile (remainingText.length > 0) {\n  let chunk = remainingText.substring(0, 1900);\n\n  // If there's more text, try to break at a natural point\n  if (remainingText.length > 1900) {\n    const lastPeriod = chunk.lastIndexOf('. ');\n    const lastNewline = chunk.lastIndexOf('\\n');\n\n    if (lastPeriod > 1200) {\n      chunk = chunk.substring(0, lastPeriod + 1);\n    } else if (lastNewline > 1200) {\n      chunk = chunk.substring(0, lastNewline);\n    }\n  }\n\n  chunks.push(chunk.trim());\n  remainingText = remainingText.substring(chunk.length).trim();\n}\n\n// Return all original data plus split blocks, extracted title, and coverImageFileName\nreturn [{\n  json: {\n    ...input.json,\n    aiTitle: aiTitle,\n    block1: chunks[0] || '',\n    block2: chunks[1] || '',\n    block3: chunks[2] || '',\n    coverImageFileName: input.json.coverImageFileName // <-- Make sure this line is here!\n  },\n  binary: input.binary || {}\n}];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        876,
-        260
-      ],
-      "id": "d3c22cd8-fb53-4018-8b20-838aa1bbdc03",
-      "name": "Process AI Output"
-    },
-    {
-      "parameters": {
-        "modelName": "models/gemini-2.5-flash-preview-05-20",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1,
-      "position": [
-        588,
-        480
-      ],
-      "id": "f11d200f-2692-4696-a375-1b6f87c9a013",
-      "name": "Google Gemini Chat Model",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "98JqTQmfb8tBNsCz",
-          "name": "Google Gemini(PaLM) Api account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const items = $input.all();\n\nreturn items.map((item, index) => {\n  console.log(`=== PROCESSING ITEM ${index + 1} ===`);\n  console.log('Full item structure:', JSON.stringify(item, null, 2));\n  \n  let originalFileName = null;\n  let binaryData = {};\n  \n  // Method 1: Check if binary data exists and extract filename\n  if (item.binary && Object.keys(item.binary).length > 0) {\n    console.log('Binary data found. Keys:', Object.keys(item.binary));\n    \n    // Usually the form field name is 'data' for file uploads\n    const binaryKey = Object.keys(item.binary)[0]; // Get first binary key\n    console.log('Using binary key:', binaryKey);\n    \n    if (item.binary[binaryKey]) {\n      binaryData = {};\n      binaryData[binaryKey] = item.binary[binaryKey];\n      \n      // Extract filename from binary data\n      const binaryInfo = item.binary[binaryKey];\n      console.log('Binary info:', {\n        fileName: binaryInfo.fileName,\n        mimeType: binaryInfo.mimeType,\n        fileExtension: binaryInfo.fileExtension,\n        hasData: !!binaryInfo.data\n      });\n      \n      // Try multiple ways to get filename\n      originalFileName = binaryInfo.fileName || \n                       binaryInfo.filename || \n                       binaryInfo.name ||\n                       binaryInfo.originalname;\n      \n      console.log('Extracted filename:', originalFileName);\n    }\n  }\n  \n  // Method 2: Check form data structure\n  if (!originalFileName && item.json) {\n    console.log('Checking JSON structure for filename...');\n    \n    // Check if there's form data with filename\n    if (item.json.data && Array.isArray(item.json.data)) {\n      const fileField = item.json.data.find(field => \n        field.fieldName === 'data' || \n        field.fieldType === 'file' ||\n        field.filename ||\n        field.fileName\n      );\n      \n      if (fileField) {\n        originalFileName = fileField.filename || \n                         fileField.fileName || \n                         fileField.name;\n        console.log('Found filename in form data:', originalFileName);\n      }\n    }\n    \n    // Direct filename fields\n    if (!originalFileName) {\n      originalFileName = item.json.filename || \n                       item.json.fileName || \n                       item.json.originalFileName ||\n                       item.json.name;\n      console.log('Found filename in JSON:', originalFileName);\n    }\n  }\n  \n  // Method 3: Generate filename if still not found - BUT KEEP IT SIMPLE\n  if (!originalFileName || originalFileName === 'undefined' || originalFileName === '') {\n    console.log('No filename found, using default...');\n    // Use a simple default that won't cause issues\n    originalFileName = 'uploaded-document.pdf';\n    console.log('Using default filename:', originalFileName);\n  }\n  \n  // Clean up filename (remove any problematic characters but preserve original name structure)\n  // Only replace truly problematic characters, keep hyphens and underscores\n  originalFileName = originalFileName.replace(/[<>:\"/\\\\|?*]/g, '_');\n  \n  // Ensure .pdf extension\n  if (!originalFileName.toLowerCase().endsWith('.pdf')) {\n    const nameWithoutExt = originalFileName.split('.')[0];\n    originalFileName = nameWithoutExt + '.pdf';\n  }\n  \n  console.log('Final filename:', originalFileName);\n  \n  // Validation\n  const hasValidFilename = originalFileName && originalFileName !== 'undefined';\n  const hasValidBinary = Object.keys(binaryData).length > 0;\n  \n  console.log('Validation:');\n  console.log('- Valid filename:', hasValidFilename);\n  console.log('- Valid binary data:', hasValidBinary);\n  console.log('- Binary data keys:', Object.keys(binaryData));\n  \n  if (hasValidBinary) {\n    const firstBinaryKey = Object.keys(binaryData)[0];\n    console.log('- Binary data size:', binaryData[firstBinaryKey]?.data?.length || 'unknown');\n  }\n  \n  console.log('================================');\n  \n  return {\n    json: {\n      ...item.json,\n      originalFileName: originalFileName,\n      processingTimestamp: new Date().toISOString(),\n      validationStatus: {\n        hasFilename: hasValidFilename,\n        hasBinary: hasValidBinary,\n        readyForUpload: hasValidFilename && hasValidBinary\n      },\n      extractionMethod: 'enhanced_extraction_v3'\n    },\n    binary: binaryData\n  };\n});"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        60,
-        260
-      ],
-      "id": "3a79a829-6135-4f0e-adf8-e1250611afee",
-      "name": "Binary Data Extraction"
-    },
-    {
-      "parameters": {
-        "operation": "pdf",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.extractFromFile",
-      "typeVersion": 1,
-      "position": [
-        280,
-        260
-      ],
-      "id": "db5a51b7-c21d-46c0-9f50-eaa43645a1d6",
-      "name": "Extract from File1",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "pageId": {
-          "__rl": true,
-          "value": "https://www.notion.so/PDF-Summary-20a7112e57b98127b5a3f03fdd045cbf",
-          "mode": "url"
-        },
-        "title": "={{ $json.aiTitle }}",
-        "blockUi": {
-          "blockValues": [
+        "text": "=I want to read this tweet and make a decision if you think a response with a link to an AI Tools directory page that would help answer the question / ask in the provided tweet.\n\nA good tweet for us to reply to is usually in the form of a question like \"How can I use AI to do...?\", \"Are there any AI tools that can help me do...?\", and other questions of that nature.\n\nHere are some examples of types of tweets we don't want to reply to:\n- A statement instead of someone asking for a tool\n- An unrelated question or inquiry that could not be helped by us sharing a link to tools on our AI Tools directory\n- A reply to another tweet (this typical begins with an @ symbol followed by their twitter user name). You can look at the raw slack alert to find more metadata to determine if this was a reply or not.\n- A tweet that shares a link to an article or content piece on another website\n- If someone tweets the question \"How can I use AI to do my job better?\", don't write a reply. This is a common quote that people use instead of a real question we want to reply to.\n- If someone is asking something nefarious, you should NOT reply to this tweet.\n- If someone is asking for a specific tool to take action towards an individual you should NOT reply to this tweet.\n- If someone is sharing a prompt for LLMs, don't reply to that tweet.\n\n---\nTweet To Evaluate:\n\n{{ $('get_tweet_content').item.json.tweet_content }}\n",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
             {
-              "textContent": "={{ $json.block1 }}"
-            },
-            {
-              "textContent": "={{ $json.block2 }}"
-            },
-            {
-              "textContent": "={{ $json.block3 }}"
+              "message": "You are a helpful assistant, an expert community manager, and expert social media manager, and an expert at marketing. Your job is to help grow the social media presence of our AI tool directory called \"AI Tools\" on X (formerly Twitter) by evaluating AI-related tweets you should reply to."
             }
           ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.notion",
-      "typeVersion": 2.2,
-      "position": [
-        -160,
-        -100
-      ],
-      "id": "8bb31ca9-b2f6-4720-b0c5-d2fe171cf355",
-      "name": "Notion_PDF Summary",
-      "credentials": {
-        "notionApi": {
-          "id": "wv5ZmtxyRwkU0dXZ",
-          "name": "Notion account"
         }
-      }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        1860,
+        120
+      ],
+      "id": "f320e58f-1d5a-4d49-8eae-bc4be7195546",
+      "name": "evaluate_tweet",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
-        "resource": "databasePage",
-        "databaseId": {
+        "promptType": "define",
+        "text": "=I want you to write a reply to the tweet I am providing below that will help this person out by sharing a relevant link to our AI Tools directory along with a short note.\n\nYou should first pick out which category page url on AI Tools will be able to help them the most based on their question or inquiry in the initial tweet.\n\nOnce that is done, write a helpful and concise tweet that let's the original person know that they can find helpful or useful tools at the link you selected out. Include this category url link in your tweet reply message.\n\nYou should write in a style that is friendly but would not be considered excessive or over the top. Your goal is to be helpful and share a resource that helps them out.\n\nAvoid repeating information from the original tweet.\n\nKeep your note very concise (short and sweet) and use as few words as you can.\n\nIt is very important you are picking the best category on AI Tools to share in your reply in order to help this person the most. The link you share should help this person find what they are looking for and asking about.\n\nUse direct language in your tweet reply.\n\nDon't start your reply with \"check\".\n\nPrefer \"may help\" over \"could\" in your reply.\n\nShort and sweet is best for this.\n\n---\nHere are some examples we have replied to in the past to help you out when crafting a great reply tweet. Please read these:\n\n### Tweet #1\n- Initial Tweet: Is there an AI tool(or tools) you might  recommend for a novice that wants to play with creating whimsical images? Thanks much!\n- Reply Tweet: There's a bunch of cool ones on here: https://aitools.inc/categories/ai-image-generators\n\n### Tweet #2\n- Initial Tweet: is there a AI tool that can help create comic book stories based on prompts and a story line\n- Reply Tweet: several on here! https://aitools.inc/categories/ai-comic-generators\n\n### Tweet #3\n- Initial Tweet: Sir, is there an AI tool that is able to create a short video based on an image? I want to create a short commercial video but I only have some photos of the product.\n- Reply Tweet: I think some of these allow you to include images w/ your prompt: https://aitools.inc/categories/ai-text-to-video-tools\n\n### Tweet #4\n- Initial Tweet: Are there AI tools that can give you a professional design for an entire web app UI?\n- Reply Tweet: We have a really good list here! https://aitools.inc/categories/ai-design-tools\n\n---\nHere's some feedback on tweets you previously wrote that you should consider for this tweet you are writing. Please reivew this feedback and apply my suggestions when you are writing this tweet:\n\n### Feedback 1\n\n- Input Tweet: I hate video tutorials so fucking much is there an AI tool that give me text ones from a video\n- Your Output: These tools can convert videos into text formats: https://aitools.inc/categories/ai-video-to-blog-tools\n\nInstead of what you wrote, I would write this instead: \"Some of these tools may help: https://aitools.inc/categories/ai-video-to-blog-tools\"\n\n### Feedback 2\n\n- Input Tweet: Is there an AI tool that takes design instructions and produces high fidelity designs?\n- Your Output: Great design tools listed here: https://aitools.inc/categories/ai-design-tools\n\nInstead of what you wrote, I suggest you respond more like this: \"There's some great AI design tools on here: https://aitools.inc/categories/ai-design-tools\"\n\n### Feedback 3\n\n- Input Tweet: This is sick! How do you actually get the design? Are there any ai tools that help with designing that we can then port to cursor?\n- Your Output: There are several AI design tools that might help with what you need: https://aitools.inc/categories/ai-design-tools\n\nInstead of what you wrote, I suggest you respond more like this: \"There are some design tools that may help here: https://aitools.inc/categories/ai-design-tools\"\n\n### Feedback 4\n\n- Input Tweet: is there an ai tool out there where i can just talk to it and it summarizes what i say? hahahahaa like i gotta stop calling @tasonjorres and brain dump\n- Your Output: These AI meeting note takers could help with those brain dumps: https://aitools.inc/categories/ai-meeting-note-takers\n\nInstead of what you wrote, I suggest you respond more like this: \"These could help out with those brain dumps: https://aitools.inc/categories/ai-meeting-note-takers\". It is okay to exclude the exact category name in your response to keep it short.\n\n### Feedback 4\n\n- Input Tweet: are there any AI tools that timestamp youtube videos for you?\n- Your Output: You'll find some helpful tools here: https://aitools.inc/categories/ai-video-to-blog-tools\n\nInstead of what you wrote, I suggest you respond more like this: \"Some of these may be helpful: https://aitools.inc/categories/ai-video-to-blog-tools\". Since the category we are sharing isn't an exact match to what they are asking, we should with a little less certainty.\n\n---\nTweet you will be replying to:\n{{ $node['get_tweet_content'].json.tweet_content }}\n\n---\nList of category page urls on our AI Tools directory. The link you include in your tweet MUST be from this list of urls that point to a category page on our AI Tools directory:\n{{ $('get_category_content').item.json.category_content }}\n\n",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a helpful assistant, an expert community manager, an expert social media manager, and an expert at marketing. Your job is to help grow the social media presence of our AI tool directory called \"AI Tools\" on X (formerly Twitter) by writing a reply tweet that "
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        660,
+        860
+      ],
+      "id": "a7c21819-f11a-41a1-ad11-f4ba327f26de",
+      "name": "write_tweet",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8246f59e-597a-425d-adf8-60bd45dd25f9",
+              "leftValue": "={{ $('exclude_retweets').all().length }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        620,
+        140
+      ],
+      "id": "8600f2fa-b9d1-4ee0-9679-e62e07c1e632",
+      "name": "should_evaluate"
+    },
+    {
+      "parameters": {
+        "resource": "reaction",
+        "channelId": {
           "__rl": true,
-          "value": "2087112e-57b9-80d4-af14-e4989ea2920c",
+          "value": "C07RY6EQ6SH",
+          "mode": "id"
+        },
+        "timestamp": "={{ $('slack_trigger').item.json.event_ts }}",
+        "name": "x"
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        920,
+        380
+      ],
+      "id": "59c836e4-27a6-4d9a-8d2a-d6294297143d",
+      "name": "leave_skip_reaction",
+      "webhookId": "3d1dd3e9-f7d3-4cfe-9fae-b568bca25db5",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"chainOfThought\": {\n      \"type\": \"string\",\n      \"description\": \"Sequential reasoning to determine if this tweet should be replied to.\"\n    },\n    \"is_tweet_good_reply_candidate\": {\n      \"type\": \"boolean\",\n      \"description\": \"Indicator if the evaluated tweet content is a good candidate to reply to.\"\n    }\n  },\n  \"required\": [\n    \"chainOfThought\",\n    \"is_tweet_good_reply_candidate\"\n  ]\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2020,
+        560
+      ],
+      "id": "773edb32-6228-42a6-a0ef-a6d3125af1a3",
+      "name": "evaluate_tweet_output_parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
           "mode": "list",
-          "cachedResultName": "PDF Summary table",
-          "cachedResultUrl": "https://www.notion.so/2087112e57b980d4af14e4989ea2920c"
+          "value": "gpt-4o-mini"
         },
-        "title": "={{ $json.aiTitle }}",
-        "blockUi": {
-          "blockValues": [
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1440,
+        560
+      ],
+      "id": "5672a562-c868-44c8-93c4-429b45bc442e",
+      "name": "gpt-4o-mini"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
             {
-              "textContent": "={{ $json.block1 }}"
-            },
-            {
-              "textContent": "={{ $json.block2 }}"
-            },
-            {
-              "textContent": "={{ $json.block3 }}"
+              "id": "1c8fe2cd-da05-4f6f-8de8-bfcdaebd8b45",
+              "name": "tweet_content",
+              "value": "={{ $('fetch_tweet_content').item.json.text }}",
+              "type": "string"
             }
           ]
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.notion",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1560,
+        120
+      ],
+      "id": "dc27bb52-24cc-43ea-8448-45c3c9429b6e",
+      "name": "get_tweet_content"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6684bc25-d89e-4a22-954a-4c9c3aa5ae47",
+              "leftValue": "={{ $json.output.is_tweet_good_reply_candidate }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1096,
-        260
+        -320,
+        1040
       ],
-      "id": "bdb11450-8483-4712-b2ab-74376a8fd9b9",
-      "name": "Notion_PDF Summary TABLE",
-      "credentials": {
-        "notionApi": {
-          "id": "wv5ZmtxyRwkU0dXZ",
-          "name": "Notion account"
+      "id": "e8ef30f5-b65b-4164-a997-a77c5905f0fb",
+      "name": "is_good_candidate"
+    },
+    {
+      "parameters": {
+        "resource": "reaction",
+        "channelId": {
+          "__rl": true,
+          "value": "C07RY6EQ6SH",
+          "mode": "id"
+        },
+        "timestamp": "={{ $('slack_trigger').last().json.event_ts }}",
+        "name": "x"
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        340,
+        1160
+      ],
+      "id": "7f883595-0ded-4540-9338-f09a38927be2",
+      "name": "leave_bad_candidate_reaction",
+      "webhookId": "3d1dd3e9-f7d3-4cfe-9fae-b568bca25db5",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C07RY6EQ6SH",
+          "mode": "id"
+        },
+        "text": "=I don't think this is a good Tweet for me to reply to.\n\n*Reason:*\n{{ $('evaluate_tweet').item.json.output.chainOfThought }}\n",
+        "otherOptions": {
+          "thread_ts": {
+            "replyValues": {
+              "thread_ts": "={{ $('slack_trigger').last().json.event_ts }}"
+            }
+          }
         }
-      }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        80,
+        1160
+      ],
+      "id": "6b0ca9ea-d435-44f7-b25c-a1d26923ec7a",
+      "name": "share_bad_tweet_candidate_msg",
+      "webhookId": "a195152d-c866-486c-a074-500d37dece2f"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"chainOfThought\": {\n      \"type\": \"string\",\n      \"description\": \"Sequential reasoning to make a decision on the most helpful page to share from AI Tools and how you decided to write your helpful note in the tweet reply.\"\n    },\n    \"tweet_content\": {\n      \"type\": \"string\",\n      \"description\": \"The final tweet content that will be used as a reply on Twitter. This MUST include a url provided from the AI tools website that will help the user.\"\n    }\n  },\n  \"required\": [\n    \"chainOfThought\",\n    \"tweet_content\"\n  ]\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        860,
+        1060
+      ],
+      "id": "5057d242-f32f-422c-99a0-52dd4abac17c",
+      "name": "write_tweet_output_parser"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C07RY6EQ6SH",
+          "mode": "id"
+        },
+        "text": "=I went forward replying with this Tweet:\n```\n{{ $('write_tweet').item.json.output.tweet_content }}\n```\n\n*Reasoning:*\n{{ $('write_tweet').item.json.output.chainOfThought }}\n",
+        "otherOptions": {
+          "thread_ts": {
+            "replyValues": {
+              "thread_ts": "={{ $('slack_trigger').last().json.event_ts }}"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1660,
+        860
+      ],
+      "id": "e7dd1d31-1895-464b-aa42-cc0e0ad7065a",
+      "name": "share_tweet_content",
+      "webhookId": "a195152d-c866-486c-a074-500d37dece2f"
+    },
+    {
+      "parameters": {
+        "resource": "reaction",
+        "channelId": {
+          "__rl": true,
+          "value": "C07RY6EQ6SH",
+          "mode": "id"
+        },
+        "timestamp": "={{ $('slack_trigger').last().json.event_ts }}",
+        "name": "white_check_mark"
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1960,
+        860
+      ],
+      "id": "4506a892-c862-4e50-905e-c89064fde40c",
+      "name": "leave_check_reaction",
+      "webhookId": "3d1dd3e9-f7d3-4cfe-9fae-b568bca25db5",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a8a140f5-ae97-4476-b4de-fac4d3f30767",
+              "leftValue": "={{ $json.attachments[0].text }}",
+              "rightValue": "RT",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        140
+      ],
+      "id": "01f24d9a-c340-4ce4-ba15-b195b98dd760",
+      "name": "exclude_retweets"
+    },
+    {
+      "parameters": {
+        "url": "=https://cdn.syndication.twimg.com/tweet-result?id={{ $('extract_tweet_id').item.json.output.tweet_id }}&token=utxo",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        120
+      ],
+      "id": "bfb8d355-bd04-41e2-93b1-5af6b93c23da",
+      "name": "fetch_tweet_content"
+    },
+    {
+      "parameters": {
+        "text": "=Help me extract the tweet id from the \"Open on web\" url included in this json payload that I received from a slack message webhook.\n\nHere is the slack message content to extract his information from:\n{{ JSON.stringify($('slack_trigger').first().json, null, 2) }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "tweet_id",
+              "description": "The tweet id to extract from slack webhook json payload. This id can be extracted from the 'Open on web' link in the included json payload.",
+              "required": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1,
+      "position": [
+        920,
+        120
+      ],
+      "id": "cfb5133a-f1c8-481e-a0e0-7fd5fe7b3001",
+      "name": "extract_tweet_id",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "url": "http://api.aitools.inc/categories",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        860
+      ],
+      "id": "1a0aedf2-1a62-4019-8d11-fadc4523f2c4",
+      "name": "fetch_categories"
+    },
+    {
+      "parameters": {
+        "jsCode": "let category_content = $input.all().map(o => {\n  let result = \"\";\n\n  result += `Title: ${o.json.title}\\n`;\n  result += `Description: ${o.json.meta_description}\\n`;\n  result += `Url: https://aitools.inc/categories/${o.json.slug}`;\n\n  return result;\n}).join(\"\\n\\n\");\n\nreturn { category_content };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        860
+      ],
+      "id": "db539da9-1ee1-416f-ae82-981963ddb723",
+      "name": "get_category_content"
+    },
+    {
+      "parameters": {
+        "text": "={{ $('write_tweet').item.json.output.tweet_content }}",
+        "additionalFields": {
+          "inReplyToStatusId": {
+            "__rl": true,
+            "value": "={{ $('extract_tweet_id').item.json.output.tweet_id }}",
+            "mode": "id"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        860
+      ],
+      "id": "d82bfe9d-06d7-420e-93c4-bea9faf457e4",
+      "name": "post_reply_tweet"
+    },
+    {
+      "parameters": {
+        "amount": 65
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1080,
+        860
+      ],
+      "id": "31fc511a-c7c7-4415-b65c-53476d871a24",
+      "name": "delay",
+      "webhookId": "a96b123e-027c-4c3d-9fdd-3ffc61ba7cb1"
+    },
+    {
+      "parameters": {
+        "model": "claude-3-5-sonnet-20241022",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        1060
+      ],
+      "id": "dc8741dd-8a00-4dbf-8c64-edd336d9b75a",
+      "name": "claude-3.5-sonnet"
+    },
+    {
+      "parameters": {
+        "content": "## 1. Evaluate Tweet\n",
+        "height": 640,
+        "width": 2540
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -340,
+        80
+      ],
+      "typeVersion": 1,
+      "id": "bd3659cf-9676-463a-827a-03ebeee29538",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## 2. Post Reply\n\n",
+        "height": 640,
+        "width": 2540,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -340,
+        740
+      ],
+      "typeVersion": 1,
+      "id": "a9e20423-ec64-4127-ae78-33e6357ff9f1",
+      "name": "Sticky Note1"
     }
   ],
   "connections": {
-    "On form submission": {
+    "slack_trigger": {
       "main": [
         [
           {
-            "node": "Binary Data Extraction",
+            "node": "filter_only_twitter_source",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "AI Agent": {
+    "filter_only_twitter_source": {
       "main": [
         [
           {
-            "node": "Process AI Output",
+            "node": "exclude_self_account",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process AI Output": {
+    "exclude_self_account": {
       "main": [
         [
           {
-            "node": "Notion_PDF Summary TABLE",
+            "node": "exclude_retweets",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Google Gemini Chat Model": {
+    "evaluate_tweet": {
+      "main": [
+        [
+          {
+            "node": "is_good_candidate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "should_evaluate": {
+      "main": [
+        [
+          {
+            "node": "extract_tweet_id",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "leave_skip_reaction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "evaluate_tweet_output_parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "evaluate_tweet",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gpt-4o-mini": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent",
+            "node": "evaluate_tweet",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "extract_tweet_id",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Binary Data Extraction": {
+    "get_tweet_content": {
       "main": [
         [
           {
-            "node": "Extract from File1",
+            "node": "evaluate_tweet",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Extract from File1": {
+    "is_good_candidate": {
       "main": [
         [
           {
-            "node": "AI Agent",
+            "node": "fetch_categories",
             "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "share_bad_tweet_candidate_msg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "share_bad_tweet_candidate_msg": {
+      "main": [
+        [
+          {
+            "node": "leave_bad_candidate_reaction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "write_tweet": {
+      "main": [
+        [
+          {
+            "node": "delay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "write_tweet_output_parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "write_tweet",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "share_tweet_content": {
+      "main": [
+        [
+          {
+            "node": "leave_check_reaction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exclude_retweets": {
+      "main": [
+        [
+          {
+            "node": "should_evaluate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fetch_tweet_content": {
+      "main": [
+        [
+          {
+            "node": "get_tweet_content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract_tweet_id": {
+      "main": [
+        [
+          {
+            "node": "fetch_tweet_content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fetch_categories": {
+      "main": [
+        [
+          {
+            "node": "get_category_content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_category_content": {
+      "main": [
+        [
+          {
+            "node": "write_tweet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "post_reply_tweet": {
+      "main": [
+        [
+          {
+            "node": "share_tweet_content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "delay": {
+      "main": [
+        [
+          {
+            "node": "post_reply_tweet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "claude-3.5-sonnet": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "write_tweet",
+            "type": "ai_languageModel",
             "index": 0
           }
         ]
@@ -260,8 +843,82 @@
   },
   "staticData": null,
   "meta": null,
-  "pinData": {},
-  "versionId": "8fc54ffc-34ba-4d87-9e46-20173e047984",
+  "pinData": {
+    "slack_trigger": [
+      {
+        "json": {
+          "subtype": "bot_message",
+          "text": "*1* new mention for the alert *AI Tools*",
+          "attachments": [
+            {
+              "id": 1,
+              "color": "7ED321",
+              "fallback": "RT <https://twitter.com/hackSultan|@hackSultan>: 109 companies  (Hiring  2 -5 interns on average) and over 4000+ potential interns.How do I use AI to accurately pair interns to the right company based off skill set, requirements and location?\n<http://web.mention.com/#alert/2626255/mentions/145212540259|Open in Mention> - <https://twitter.com/egcarson_/status/1926932393660756370|Open on web> - <http://web.mention.com/#alert/2626255/edit/settings|Settings>",
+              "text": "RT <https://twitter.com/hackSultan|@hackSultan>: 109 companies  (Hiring  2 -5 interns on average) and over 4000+ potential interns.How do I use AI to accurately pair interns to the right company based off skill set, requirements and location?\n<http://web.mention.com/#alert/2626255/mentions/145212540259|Open in Mention> - <https://twitter.com/egcarson_/status/1926932393660756370|Open on web> - <http://web.mention.com/#alert/2626255/edit/settings|Settings>",
+              "author_name": "EG Carson  ‍  (@egcarson_)",
+              "author_link": "https://twitter.com/egcarson_",
+              "author_icon": "https://pbs.twimg.com/profile_images/1668901911104221187/Jy9zCnTG_normal.jpg",
+              "fields": [
+                {
+                  "value": "X (Twitter)",
+                  "title": "Source",
+                  "short": true
+                },
+                {
+                  "value": "12",
+                  "title": "Influence",
+                  "short": true
+                }
+              ],
+              "mrkdwn_in": [
+                "fields",
+                "pretext",
+                "text"
+              ]
+            }
+          ],
+          "type": "message",
+          "ts": "1748251466.728959",
+          "bot_id": "B07STMFJADP",
+          "blocks": [
+            {
+              "type": "rich_text",
+              "block_id": "YGeaD",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "1",
+                      "style": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " new mention for the alert "
+                    },
+                    {
+                      "type": "text",
+                      "text": "AI Tools",
+                      "style": {
+                        "bold": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "channel": "C07RY6EQ6SH",
+          "event_ts": "1748251466.728959",
+          "channel_type": "channel"
+        }
+      }
+    ]
+  },
+  "versionId": "4f5065c5-f199-4783-aa7e-40f9bde8f260",
   "triggerCount": 0,
   "tags": []
 }
