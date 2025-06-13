@@ -1,628 +1,457 @@
 {
-  "createdAt": "2025-06-12T12:24:56.120Z",
-  "updatedAt": "2025-06-13T00:33:08.446Z",
-  "id": "OC2kRuvM2MKwH0zm",
-  "name": "Backup_Github",
+  "createdAt": "2025-06-10T12:03:50.868Z",
+  "updatedAt": "2025-06-11T20:16:39.578Z",
+  "id": "OgYhbzU3Di5AwVmf",
+  "name": "PDF Summary 2",
   "active": false,
   "isArchived": true,
   "nodes": [
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
+        "formTitle": "Submit PDF",
+        "formDescription": "Submit pdf file",
+        "formFields": {
+          "values": [
             {
-              "id": "8d513345-6484-431f-afb7-7cf045c90f4f",
-              "name": "Done",
-              "type": "boolean",
-              "value": true
+              "fieldLabel": "data",
+              "fieldType": "file"
             }
           ]
         },
         "options": {}
       },
-      "id": "b3ae4eba-4140-4514-8dc6-4ce8aa0d5e6d",
-      "name": "Return",
-      "type": "n8n-nodes-base.set",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
       "position": [
-        1860,
-        800
+        -3480,
+        1770
       ],
-      "typeVersion": 3.3
+      "id": "fc2365e6-9740-41bf-84d3-ff9579cf8dd2",
+      "name": "On form submission",
+      "webhookId": "8aba50e3-f549-483a-93bc-11931d3e8391"
     },
     {
       "parameters": {
-        "url": "={{ $json.download_url }}",
+        "operation": "pdf",
         "options": {}
       },
-      "id": "c182c20a-f217-4c24-b5a2-3334eb4c4d60",
-      "name": "Get File",
-      "type": "n8n-nodes-base.httpRequest",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
       "position": [
-        540,
-        650
+        -3260,
+        1845
       ],
-      "typeVersion": 4.2
+      "id": "eddc144a-8799-42bd-b51f-eb12a6b5ef8c",
+      "name": "Extract from File",
+      "alwaysOutputData": true
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "version": 1,
-            "leftValue": "",
-            "caseSensitive": true,
-            "typeValidation": "strict"
-          },
-          "combinator": "and",
-          "conditions": [
-            {
-              "id": "45ce825e-9fa6-430c-8931-9aaf22c42585",
-              "operator": {
-                "type": "string",
-                "operation": "empty",
-                "singleValue": true
-              },
-              "leftValue": "={{ $json.content }}",
-              "rightValue": ""
-            },
-            {
-              "id": "9619a55f-7fb1-4f24-b1a7-7aeb82365806",
-              "operator": {
-                "type": "string",
-                "operation": "notExists",
-                "singleValue": true
-              },
-              "leftValue": "={{ $json.error }}",
-              "rightValue": ""
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const input = $input.first();\nconst fullText = input.json.text || '';\nconst binaryData = input.binary || {};\n\n// Find the binary property key (usually 'data')\nconst binaryKey = Object.keys(binaryData)[0];\n\n// Only proceed if binaryKey exists\nif (binaryKey && binaryData[binaryKey]) {\n  // Figure out the file name\n  const fileName =\n    input.json.fileName ||\n    input.json.originalFileName ||\n    'document.pdf';\n\n  // Attach the file name to the binary property\n  binaryData[binaryKey].fileName = fileName;\n}\n\n// Process text length\nlet processedText;\nif (fullText.length <= 8000) {\n  processedText = fullText;\n} else {\n  const start = fullText.substring(0, 4000);\n  const end = fullText.substring(fullText.length - 2000);\n  const middle = fullText.substring(\n    Math.floor(fullText.length / 2) - 1000,\n    Math.floor(fullText.length / 2) + 1000\n  );\n  processedText =\n    start +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    middle +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    end;\n}\n\n// Now processedText is defined and can be used in the return\nreturn [\n  {\n    json: {\n      text: processedText,\n      needsCoverExtraction: true,\n      originalFileName: (binaryKey && binaryData[binaryKey] && binaryData[binaryKey].fileName) || 'document.pdf'\n    },\n    binary: binaryData\n  }\n];\n"
       },
-      "id": "646d7c6e-2589-4234-8d89-adc3109cd681",
-      "name": "If file too large",
-      "type": "n8n-nodes-base.if",
-      "position": [
-        320,
-        725
-      ],
-      "typeVersion": 2
-    },
-    {
-      "parameters": {},
-      "id": "304802bc-3d02-4efe-99c6-443b8b5944bb",
-      "name": "Merge Items",
-      "type": "n8n-nodes-base.merge",
-      "position": [
-        760,
-        800
-      ],
-      "typeVersion": 2
-    },
-    {
-      "parameters": {
-        "jsCode": "const orderJsonKeys = (jsonObj) => {\n  const ordered = {};\n  Object.keys(jsonObj).sort().forEach(key => {\n    ordered[key] = jsonObj[key];\n  });\n  return ordered;\n}\n\n// Check if file returned with content\nif (Object.keys($input.all()[0].json).includes(\"content\")) {\n  // Decode base64 content and parse JSON\n  const origWorkflow = JSON.parse(Buffer.from($input.all()[0].json.content, 'base64').toString());\n  const n8nWorkflow = $input.all()[1].json;\n  \n  // Order JSON objects\n  const orderedOriginal = orderJsonKeys(origWorkflow);\n  const orderedActual = orderJsonKeys(n8nWorkflow);\n\n  // Determine difference\n  if (JSON.stringify(orderedOriginal) === JSON.stringify(orderedActual)) {\n    $input.all()[0].json.github_status = \"same\";\n  } else {\n    $input.all()[0].json.github_status = \"different\";\n    $input.all()[0].json.n8n_data_stringy = JSON.stringify(orderedActual, null, 2);\n  }\n  $input.all()[0].json.content_decoded = orderedOriginal;\n// No file returned / new workflow\n} else if (Object.keys($input.all()[0].json).includes(\"data\")) {\n  const origWorkflow = JSON.parse($input.all()[0].json.data);\n  const n8nWorkflow = $input.all()[1].json;\n  \n  // Order JSON objects\n  const orderedOriginal = orderJsonKeys(origWorkflow);\n  const orderedActual = orderJsonKeys(n8nWorkflow);\n\n  // Determine difference\n  if (JSON.stringify(orderedOriginal) === JSON.stringify(orderedActual)) {\n    $input.all()[0].json.github_status = \"same\";\n  } else {\n    $input.all()[0].json.github_status = \"different\";\n    $input.all()[0].json.n8n_data_stringy = JSON.stringify(orderedActual, null, 2);\n  }\n  $input.all()[0].json.content_decoded = orderedOriginal;\n\n} else {\n  // Order JSON object\n  const n8nWorkflow = $input.all()[1].json;\n  const orderedActual = orderJsonKeys(n8nWorkflow);\n  \n  // Proper formatting\n  $input.all()[0].json.github_status = \"new\";\n  $input.all()[0].json.n8n_data_stringy = JSON.stringify(orderedActual, null, 2);\n}\n\n// Return items\nreturn $input.all();"
-      },
-      "id": "d43684ae-9a51-45f8-b3e4-4d2599d9b95e",
-      "name": "isDiffOrNew",
       "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        980,
-        800
+        -2820,
+        1770
       ],
-      "typeVersion": 1
+      "id": "b06764e2-8ac4-475e-88d3-37e3648e2828",
+      "name": "Text Processing & Setup"
     },
     {
       "parameters": {
-        "dataType": "string",
-        "value1": "={{$json.github_status}}",
-        "rules": {
-          "rules": [
-            {
-              "value2": "same"
-            },
-            {
-              "value2": "different",
-              "output": 1
-            },
-            {
-              "value2": "new",
-              "output": 2
-            }
-          ]
-        }
-      },
-      "id": "6ff37349-e6ab-4cfa-8e11-53f83d9acb99",
-      "name": "Check Status",
-      "type": "n8n-nodes-base.switch",
-      "position": [
-        1200,
-        779
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {},
-      "id": "45ac0400-c3bd-4824-9983-7b5a11ad31e8",
-      "name": "Same file - Do nothing",
-      "type": "n8n-nodes-base.noOp",
-      "position": [
-        1640,
-        600
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {},
-      "id": "91a6ac8f-f935-43e9-ab48-c36eae2b4405",
-      "name": "File is different",
-      "type": "n8n-nodes-base.noOp",
-      "position": [
-        1420,
-        800
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {},
-      "id": "ac5c496f-56d6-4fb2-944a-7afe0fcb38a8",
-      "name": "File is new",
-      "type": "n8n-nodes-base.noOp",
-      "position": [
-        1420,
-        1000
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "owner": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $('Globals').item.json.repo.owner }}"
-        },
-        "repository": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $('Globals').item.json.repo.name }}"
-        },
-        "filePath": "={{ $('Globals').item.json.repo.path }}{{$('Execute Workflow Trigger').first().json.id}}.json",
-        "fileContent": "={{$('isDiffOrNew').item.json[\"n8n_data_stringy\"]}}",
-        "commitMessage": "={{$('Execute Workflow Trigger').first().json.name}} ({{$json.github_status}})"
-      },
-      "id": "9bb31d4d-8320-4ebf-994e-becbff18ab07",
-      "name": "Create new file",
-      "type": "n8n-nodes-base.github",
-      "position": [
-        1640,
-        1000
-      ],
-      "webhookId": "e5e4ce8b-74a3-4b94-83ca-351edc280faf",
-      "typeVersion": 1,
-      "credentials": {
-        "githubApi": {
-          "id": "Fs6lCK8UIe1d0wrn",
-          "name": "GitHub account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "operation": "edit",
-        "owner": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $('Globals').item.json.repo.owner }}"
-        },
-        "repository": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $('Globals').item.json.repo.name }}"
-        },
-        "filePath": "={{ $('Globals').item.json.repo.path }}{{$('Execute Workflow Trigger').first().json.id}}.json",
-        "fileContent": "={{$('isDiffOrNew').item.json[\"n8n_data_stringy\"]}}",
-        "commitMessage": "={{$('Execute Workflow Trigger').first().json.name}} ({{$json.github_status}})"
-      },
-      "id": "ce512765-62cd-491d-a1a1-dd320e180e85",
-      "name": "Edit existing file",
-      "type": "n8n-nodes-base.github",
-      "position": [
-        1640,
-        800
-      ],
-      "webhookId": "a57e71de-4960-4d25-a59f-1a9e2e96aff5",
-      "typeVersion": 1,
-      "credentials": {
-        "githubApi": {
-          "id": "Fs6lCK8UIe1d0wrn",
-          "name": "GitHub account"
-        }
-      }
-    },
-    {
-      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the PDF content: {{ $json.text }}\n\nPlease analyze this document and return **exactly** the following, with no extra commentary:\n\nTITLE: [Document title]\n\nYEAR: [Publication year]\n\nAUTHOR: [Author name(s)]\n\nPAGES: [Total page count]\n\nOVERVIEW (50 words):  \n[Write a 50-word overview of the document.]\n\nSUMMARY (300 words):  \n[Write a 300-word summary targeting \"White paper\" and the document title.]\n\nMETA DESCRIPTION (160 chars max):  \n[Write a meta description, no more than 160 characters.]\nDescribe your new note here.\n\nReview 1 (50 - 100 words):\n[Write a 150-word posotive review of the document.]",
         "options": {}
       },
-      "id": "6820a0a2-2289-4c9f-bfd0-7ff6f31336db",
-      "name": "Loop Over Items",
-      "type": "n8n-nodes-base.splitInBatches",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
       "position": [
-        100,
-        340
+        -1720,
+        1520
       ],
-      "typeVersion": 3
+      "id": "cfb9a822-1961-446e-925f-d14fefc99c3d",
+      "name": "AI Agent",
+      "alwaysOutputData": true
     },
     {
       "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "hours",
-              "hoursInterval": 2
-            }
-          ]
-        }
+        "jsCode": "const input = $input.first();\nlet text = input.json.output || '';\n\n// Extract title from the AI output\nconst titleMatch = text.match(/TITLE: (.+)/);\nconst aiTitle = titleMatch ? titleMatch[1].trim() : 'Untitled';\n\n// Split text into chunks that fit Notion's 2000 char limit\nconst chunks = [];\nlet remainingText = text;\n\nwhile (remainingText.length > 0) {\n  let chunk = remainingText.substring(0, 1900);\n\n  // If there's more text, try to break at a natural point\n  if (remainingText.length > 1900) {\n    const lastPeriod = chunk.lastIndexOf('. ');\n    const lastNewline = chunk.lastIndexOf('\\n');\n\n    if (lastPeriod > 1200) {\n      chunk = chunk.substring(0, lastPeriod + 1);\n    } else if (lastNewline > 1200) {\n      chunk = chunk.substring(0, lastNewline);\n    }\n  }\n\n  chunks.push(chunk.trim());\n  remainingText = remainingText.substring(chunk.length).trim();\n}\n\n// Return all original data plus split blocks, extracted title, and coverImageFileName\nreturn [{\n  json: {\n    ...input.json,\n    aiTitle: aiTitle,\n    block1: chunks[0] || '',\n    block2: chunks[1] || '',\n    block3: chunks[2] || '',\n    coverImageFileName: input.json.coverImageFileName // <-- Make sure this line is here!\n  },\n  binary: input.binary || {}\n}];\n"
       },
-      "id": "539de335-9db8-4fe9-be5d-bee135d70244",
-      "name": "Schedule Trigger",
-      "type": "n8n-nodes-base.scheduleTrigger",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -340,
-        340
+        -1344,
+        1620
       ],
-      "typeVersion": 1.2
+      "id": "0e7e58c8-5746-4ec2-bb92-e03617d68c75",
+      "name": "Process AI Output"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3040,
+        1770
+      ],
+      "id": "e250ff95-fbe4-44eb-80ab-97067f9abc8b",
+      "name": "Merge"
     },
     {
       "parameters": {
-        "resource": "file",
-        "operation": "get",
-        "owner": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1124,
+        1770
+      ],
+      "id": "f58fe44d-8bdb-493e-b705-f33774bd17d5",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FIXED JavaScript Code for \"Add File name to JSON\" node:\nconst input = $input.first();\nlet fileName = 'output.png';\n\nconst binaryKey = Object.keys(input.binary)[0];\n\nif (binaryKey && input.binary[binaryKey]) {\n  // Generate a unique filename with timestamp and random string\n  const timestamp = Date.now();\n  const randomString = Math.random().toString(36).substring(2, 8);\n  const originalFileName = input.binary[binaryKey].fileName || 'output.png';\n  const fileExtension = originalFileName.split('.').pop() || 'png';\n  \n  fileName = `cover_${timestamp}_${randomString}.${fileExtension}`;\n}\n\n// Provide the COMPLETE path with unique filename\nconst completePath = \"ban/pdf_summary/\" + fileName;\n\n// Debug logging\nconsole.log('Generated fileName:', fileName);\nconsole.log('Complete path:', completePath);\nconsole.log('Binary key found:', binaryKey);\n\nreturn [{\n  json: {\n    ...input.json,\n    completePath: completePath,\n    uniqueFileName: fileName,\n    fileMeta: {\n      originalName: input.json.originalFileName || 'unknown.pdf',\n      processedAt: new Date().toISOString()\n    },\n    // Debug info\n    debug: {\n      binaryKey: binaryKey,\n      generatedPath: completePath\n    }\n  },\n  binary: input.binary\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1940,
+        1920
+      ],
+      "id": "3a9f45f7-87e6-4e79-9620-6112bd35faec",
+      "name": "Add File name to JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\n\n// Get the filename from coverImageFileName or generate a timestamp-based one\nconst fileName = input.json.coverImageFileName || `cover_${Date.now()}.png`;\nconst fullPath = `ban/pdf_summary/${fileName}`;\n\nreturn [{\n  json: {\n    ...input.json,\n    s3Url: `https://xaraban.s3.amazonaws.com/${fullPath}`\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1344,
+        1920
+      ],
+      "id": "308e50eb-8864-42db-a9ac-6eae01d3b9a9",
+      "name": "Add s3Url to JSON"
+    },
+    {
+      "parameters": {
+        "pageId": {
           "__rl": true,
-          "mode": "name",
-          "value": "={{ $json.repo.owner }}"
+          "value": "https://www.notion.so/PDF-Summary-2007112e57b980d8b998e19f93512ba1",
+          "mode": "url"
         },
-        "repository": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $json.repo.name }}"
-        },
-        "filePath": "={{ $json.repo.path }}{{ $('Execute Workflow Trigger').item.json.id }}.json",
-        "asBinaryProperty": false,
-        "additionalParameters": {}
-      },
-      "id": "174357b8-753c-4ecb-abb8-748068767a2c",
-      "name": "Get file data",
-      "type": "n8n-nodes-base.github",
-      "position": [
-        100,
-        725
-      ],
-      "webhookId": "743111c3-2c21-4658-8097-a9fe966f43d2",
-      "typeVersion": 1,
-      "alwaysOutputData": true,
-      "credentials": {
-        "githubApi": {
-          "id": "Fs6lCK8UIe1d0wrn",
-          "name": "GitHub account"
-        }
-      },
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
+        "title": "={{ $json.aiTitle }}",
+        "blockUi": {
+          "blockValues": [
             {
-              "id": "6cf546c5-5737-4dbd-851b-17d68e0a3780",
-              "name": "repo.owner",
-              "type": "string",
-              "value": "john-doe"
+              "textContent": "={{ $json.block1 }}"
             },
             {
-              "id": "452efa28-2dc6-4ea3-a7a2-c35d100d0382",
-              "name": "repo.name",
-              "type": "string",
-              "value": "n8n-backup"
+              "textContent": "={{ $json.block2 }}"
             },
             {
-              "id": "81c4dc54-86bf-4432-a23f-22c7ea831e74",
-              "name": "repo.path",
-              "type": "string",
-              "value": "workflows/"
+              "textContent": "={{ $json.block3 }}"
+            },
+            {
+              "textContent": "={{ $json.s3Url }}"
             }
           ]
         },
         "options": {}
       },
-      "id": "ad1ff5cc-815e-4eac-94e0-21dd3c229d65",
-      "name": "Globals",
-      "type": "n8n-nodes-base.set",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
       "position": [
-        -120,
-        725
+        -904,
+        1770
       ],
-      "typeVersion": 3.4
+      "id": "0f70d51f-6011-4d0d-9e0e-cf29b4f2485f",
+      "name": "Notion_good_urlonly",
+      "credentials": {
+        "notionApi": {
+          "id": "wv5ZmtxyRwkU0dXZ",
+          "name": "Notion account"
+        }
+      }
     },
     {
       "parameters": {
-        "inputSource": "passthrough"
+        "modelName": "models/gemini-2.5-flash-preview-05-20",
+        "options": {}
       },
-      "id": "1a2ee901-a6e3-48f7-9a78-e4c6daf2df47",
-      "name": "Execute Workflow Trigger",
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
       "position": [
-        -340,
-        800
+        -1632,
+        1740
       ],
-      "typeVersion": 1.1
+      "id": "380df4b5-b5ab-4420-8f56-3b96a80378ff",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "98JqTQmfb8tBNsCz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
     },
     {
       "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "NcmFcv4F8Yulq1VY",
-          "mode": "list",
-          "cachedResultName": "Giothub backup 2"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "mode": "each",
-        "options": {
-          "waitForSubWorkflow": true
+        "operation": "upload",
+        "bucketName": "xaraban",
+        "fileName": "={{$json.completePath}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        -1642,
+        1920
+      ],
+      "id": "e06b8c8d-8ebd-4cb4-9301-6917b49481d9",
+      "name": "AWS S3",
+      "credentials": {
+        "aws": {
+          "id": "1EzY6RGV9x9KCtu0",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "Convert from PDF",
+        "url": "https://api.pdf.co/v1/pdf/convert/to/png",
+        "convertType": "toPng",
+        "advancedOptions_Image": {
+          "pages": "1"
         }
       },
-      "id": "29f1b1bb-0494-438e-b8d2-5e93e8093e04",
-      "name": "Execute Workflow",
-      "type": "n8n-nodes-base.executeWorkflow",
+      "type": "n8n-nodes-pdfco.PDFco Api",
+      "typeVersion": 1,
       "position": [
-        320,
-        340
+        -2160,
+        1770
       ],
-      "typeVersion": 1.2
+      "id": "09141551-c331-40f7-9df9-f7b1f346ebd7",
+      "name": "PDFco Api",
+      "credentials": {
+        "pdfcoApi": {
+          "id": "PAcs9bTz82LKZSjr",
+          "name": "PDF.co account"
+        }
+      }
     },
     {
       "parameters": {
-        "url": "https://primary-production-a00b4.up.railway.app/api/v1/workflows",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -120,
-        340
+        -2380,
+        1780
       ],
-      "id": "40706bb3-e30b-47b8-86f6-ee8ebe4c0f6a",
-      "name": "HTTP Request",
-      "credentials": {
-        "httpBasicAuth": {
-          "id": "CwM5sMtLIKxWXa1N",
-          "name": "API BAN"
+      "id": "d959bbe7-85e1-4565-b9b0-3e0108b9e579",
+      "name": "Temporary S3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://s3-presigned-url-service-production.up.railway.app",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
         },
-        "httpHeaderAuth": {
-          "id": "IMhOjDSCUC68dT34",
-          "name": "Header Auth account 4"
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"filename\": \"{{ $json.originalFileName }}\",\n  \"contentType\": \"application/pdf\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
         }
-      }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2600,
+        1780
+      ],
+      "id": "6efcfcba-42f8-457c-a2da-24aca713a015",
+      "name": "Generate S3 Presigned URL"
     }
   ],
   "connections": {
-    "Globals": {
+    "On form submission": {
       "main": [
         [
           {
-            "node": "Get file data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get File": {
-      "main": [
-        [
-          {
-            "node": "Merge Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "File is new": {
-      "main": [
-        [
-          {
-            "node": "Create new file",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge Items": {
-      "main": [
-        [
-          {
-            "node": "isDiffOrNew",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "isDiffOrNew": {
-      "main": [
-        [
-          {
-            "node": "Check Status",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Check Status": {
-      "main": [
-        [
-          {
-            "node": "Same file - Do nothing",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "File is different",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "File is new",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get file data": {
-      "main": [
-        [
-          {
-            "node": "If file too large",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create new file": {
-      "main": [
-        [
-          {
-            "node": "Return",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Loop Over Items": {
-      "main": [
-        [],
-        [
-          {
-            "node": "Execute Workflow",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute Workflow": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Schedule Trigger": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "File is different": {
-      "main": [
-        [
-          {
-            "node": "Edit existing file",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If file too large": {
-      "main": [
-        [
-          {
-            "node": "Get File",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Merge Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Edit existing file": {
-      "main": [
-        [
-          {
-            "node": "Return",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Same file - Do nothing": {
-      "main": [
-        [
-          {
-            "node": "Return",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute Workflow Trigger": {
-      "main": [
-        [
-          {
-            "node": "Globals",
+            "node": "Merge",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Merge Items",
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Merge",
             "type": "main",
             "index": 1
           }
         ]
       ]
     },
-    "HTTP Request": {
+    "Text Processing & Setup": {
       "main": [
         [
           {
-            "node": "Loop Over Items",
+            "node": "Generate S3 Presigned URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Process AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process AI Output": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Text Processing & Setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Notion_good_urlonly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add File name to JSON": {
+      "main": [
+        [
+          {
+            "node": "AWS S3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add s3Url to JSON": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AWS S3": {
+      "main": [
+        [
+          {
+            "node": "Add s3Url to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDFco Api": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add File name to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Temporary S3": {
+      "main": [
+        [
+          {
+            "node": "PDFco Api",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate S3 Presigned URL": {
+      "main": [
+        [
+          {
+            "node": "Temporary S3",
             "type": "main",
             "index": 0
           }
@@ -633,16 +462,12 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "staticData": {
-    "node:Schedule Trigger": {
-      "recurrenceRules": []
-    }
-  },
+  "staticData": null,
   "meta": {
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "2333aaf8-2c51-4607-8266-3ec540e0ea44",
+  "versionId": "f4b91306-269d-4b4f-8b32-aaebb5da6b7c",
   "triggerCount": 1,
   "tags": []
 }
