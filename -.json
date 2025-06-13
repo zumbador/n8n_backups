@@ -1,65 +1,132 @@
 {
-  "createdAt": "2025-06-08T22:00:23.808Z",
-  "updatedAt": "2025-06-11T20:16:36.069Z",
-  "id": "buzUIdDZpC934w6c",
-  "name": "My workflow 3",
+  "createdAt": "2025-06-06T00:27:59.511Z",
+  "updatedAt": "2025-06-08T18:28:43.866Z",
+  "id": "nFynNmq0XTy5yiyD",
+  "name": "My workflow Rail",
   "active": false,
   "isArchived": true,
   "nodes": [
     {
       "parameters": {
-        "public": true,
-        "initialMessages": "Hi there! 👋\nMy name is Xara. How can I assist you today?",
-        "options": {
-          "allowFileUploads": true
-        }
+        "formTitle": "Submit PDF",
+        "formDescription": "Submit pdf file",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "data",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
       },
-      "id": "db22b5fc-ed55-450e-9ee9-91e3be9f3ae8",
-      "name": "When chat message received",
-      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
       "position": [
-        -420,
-        280
+        -3240,
+        -280
       ],
-      "webhookId": "095537c6-b21a-4cb2-8312-13b1bf1699dc",
-      "typeVersion": 1.1
+      "id": "a0dac88e-e9fb-45fd-9c62-fe3e8b694f28",
+      "name": "On form submission",
+      "webhookId": "f766ed71-52de-4747-bf1e-2020cbe40928"
     },
     {
       "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -2980,
+        -195
+      ],
+      "id": "7aeed6c3-275e-4d68-b974-1aa8a5c5eb00",
+      "name": "Extract from File",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nconst fullText = input.json.text || '';\nconst binaryData = input.binary || {};\n\n// Find the binary property key (usually 'data')\nconst binaryKey = Object.keys(binaryData)[0];\n\n// Only proceed if binaryKey exists\nif (binaryKey && binaryData[binaryKey]) {\n  // Figure out the file name\n  const fileName =\n    input.json.fileName ||\n    input.json.originalFileName ||\n    'document.pdf';\n\n  // Attach the file name to the binary property\n  binaryData[binaryKey].fileName = fileName;\n}\n\n// Process text length\nlet processedText;\nif (fullText.length <= 8000) {\n  processedText = fullText;\n} else {\n  const start = fullText.substring(0, 4000);\n  const end = fullText.substring(fullText.length - 2000);\n  const middle = fullText.substring(\n    Math.floor(fullText.length / 2) - 1000,\n    Math.floor(fullText.length / 2) + 1000\n  );\n  processedText =\n    start +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    middle +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    end;\n}\n\n// Now processedText is defined and can be used in the return\nreturn [\n  {\n    json: {\n      text: processedText,\n      needsCoverExtraction: true,\n      originalFileName: (binaryKey && binaryData[binaryKey] && binaryData[binaryKey].fileName) || 'document.pdf'\n    },\n    binary: binaryData\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2540,
+        -270
+      ],
+      "id": "73795686-02ba-4abc-8bff-321d11806730",
+      "name": "Text Processing & Setup"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.urls[0] }}",
         "options": {
-          "systemMessage": "=You are an AI-powered chatbot assistant for a website. Your primary function is to assist users by answering their queries and providing relevant information. You have access to a web_search tool that allows you to browse the internet for up-to-date information. Here's how you should operate:\n\n1. Website Information:\nFamiliarize yourself with this information about the website you're assisting. Use this as context for user interactions.\n\n2. Web Search Tool:\nYou have access to a web_search tool that can browse the internet. To use it, write the variable {web_search_question}. The tool will return relevant search results.\n\n3. Handling User Queries:\nWhen a user asks a question, follow these steps:\na) Analyze the query to determine if it's related to the website or requires external information.\nb) If the query is about the website, use the provided website information to answer.\nc) If external information is needed, use the web_search tool to find relevant data.\n\n4. Using web_search:\n- Use web_search for factual, current information that isn't provided in the website info.\n- Formulate clear, concise search queries.\n- If the first search doesn't yield useful results, refine your query and search again.\n- Limit searches to a maximum of three per user query to maintain efficiency.\n\n5. Using Think:\n- Using Think tool to think about something. It will not obtain new information or change the database, but just append the thought to the log. Use it when complex reasoning or some cache memory is needed.\n\n6. Formulating Responses:\n- Begin with information from the website if relevant.\n- Incorporate web search results to provide up-to-date, accurate information.\n- Summarize findings concisely and coherently.\n- If you're unsure or can't find reliable information, be honest about limitations.\n\n7. Ethical Considerations:\n- Respect user privacy. Don't ask for or store personal information.\n- Provide factual information. Avoid speculation or unverified claims.\n- If asked about controversial topics, strive for a balanced, neutral response.\n- Don't engage in or encourage illegal activities.\n\n8. Output Format:\nDo not include your thought process, web searches, or any other tags in the final output.\n\n9. Code Formatting:\n- Always use proper markdown formatting for code blocks\n- Use triple backticks (```) with language specification: ```javascript, ```python, ```json\n- Use single backticks (`) for inline code\n- Ensure proper indentation and spacing\n- Add blank lines before and after code blocks for better readability.\n -\"Always format JSON with proper indentation\"\n -\"Use triple backticks with 'json' language specification\"\n -\"Never output minified or compressed JSON\""
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "file",
+              "outputPropertyName": "coverImage"
+            }
+          }
         }
       },
-      "id": "c9a55f31-bce5-4a7f-a651-6d8238c10f0c",
-      "name": "AI Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
-        -108,
-        280
+        -1660,
+        -270
       ],
-      "typeVersion": 1.9
+      "id": "1e5564d4-e07e-4332-bf5a-69e0cd0608cb",
+      "name": "Download Cover Image"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the PDF content: {{ $json.text }}\n\nPlease analyze this document and return **exactly** the following, with no extra commentary:\n\nTITLE: [Document title]\n\nYEAR: [Publication year]\n\nAUTHOR: [Author name(s)]\n\nPAGES: [Total page count]\n\nOVERVIEW (50 words):  \n[Write a 50-word overview of the document.]\n\nSUMMARY (300 words):  \n[Write a 300-word summary targeting \"White paper\" and the document title.]\n\nMETA DESCRIPTION (160 chars max):  \n[Write a meta description, no more than 160 characters.]\nDescribe your new note here.\n\nReview 1 (50 - 100 words):\n[Write a 150-word posotive review of the document.]",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -1220,
+        -520
+      ],
+      "id": "73cbccc1-9c3f-496b-b6e8-3265b4fa6b8b",
+      "name": "AI Agent",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nlet text = input.json.output || '';\n\n// Extract title from the AI output\nconst titleMatch = text.match(/TITLE: (.+)/);\nconst aiTitle = titleMatch ? titleMatch[1].trim() : 'Untitled';\n\n// Split text into chunks that fit Notion's 2000 char limit\nconst chunks = [];\nlet remainingText = text;\n\nwhile (remainingText.length > 0) {\n  let chunk = remainingText.substring(0, 1900);\n\n  // If there's more text, try to break at a natural point\n  if (remainingText.length > 1900) {\n    const lastPeriod = chunk.lastIndexOf('. ');\n    const lastNewline = chunk.lastIndexOf('\\n');\n\n    if (lastPeriod > 1200) {\n      chunk = chunk.substring(0, lastPeriod + 1);\n    } else if (lastNewline > 1200) {\n      chunk = chunk.substring(0, lastNewline);\n    }\n  }\n\n  chunks.push(chunk.trim());\n  remainingText = remainingText.substring(chunk.length).trim();\n}\n\n// Return all original data plus split blocks, extracted title, and coverImageFileName\nreturn [{\n  json: {\n    ...input.json,\n    aiTitle: aiTitle,\n    block1: chunks[0] || '',\n    block2: chunks[1] || '',\n    block3: chunks[2] || '',\n    coverImageFileName: input.json.coverImageFileName // <-- Make sure this line is here!\n  },\n  binary: input.binary || {}\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -844,
+        -420
+      ],
+      "id": "1d1e317c-d4ec-4514-a09d-a7e2fc628e08",
+      "name": "Process AI Output"
     },
     {
       "parameters": {
         "model": {
           "__rl": true,
-          "value": "claude-sonnet-4-20250514",
+          "value": "claude-opus-4-20250514",
           "mode": "list",
-          "cachedResultName": "Claude Sonnet 4"
+          "cachedResultName": "Claude Opus 4"
         },
-        "options": {
-          "maxTokensToSample": 1024,
-          "thinking": false
-        }
+        "options": {}
       },
-      "id": "518b2595-456f-4def-b6d0-db4ea78cc2df",
-      "name": "Anthropic Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
-      "position": [
-        -200,
-        500
-      ],
       "typeVersion": 1.3,
+      "position": [
+        -1132,
+        -300
+      ],
+      "id": "fc9f1604-5f71-4a17-bf3e-0851c8038584",
+      "name": "Anthropic Chat Model",
       "credentials": {
         "anthropicApi": {
           "id": "l8nsyOPKZPhdPs1R",
@@ -68,130 +135,344 @@
       }
     },
     {
-      "parameters": {},
-      "id": "41a2f54a-4ad1-403b-963c-df413fe607d9",
-      "name": "Simple Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
-      "position": [
-        -80,
-        500
-      ],
-      "typeVersion": 1.3
-    },
-    {
       "parameters": {
-        "toolDescription": "Use this tool to search on the web",
         "method": "POST",
-        "url": "https://api.anthropic.com/v1/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "anthropicApi",
+        "url": "https://api.pdf.co/v1/file/upload/base64",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
-              "name": "anthropic-version",
-              "value": "2023-06-01"
+              "name": "x-api-key",
+              "value": "=bright@zumbador.com_YOhLhWaPTC9iNLyMEqLxj36vozhJA8LUQy5a0QXlKjBhdZdDEA95w61lILhWIWsl"
             },
             {
-              "name": "content-type",
-              "value": "application/jso"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('JSON', `{\n  \"model\": \"claude-3-7-sonnet-latest\",\n  \"max_tokens\": 1024,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{web_search_question}\"\n    }\n  ],\n  \"tools\": [\n    {\n      \"type\": \"web_search_20250305\",\n      \"name\": \"web_search\",\n      \"max_uses\": 5\n    }\n  ]\n}\n`, 'json') }}",
+        "jsonBody": "={{$json}}",
         "options": {}
       },
-      "id": "e2e34e80-83b6-41f6-ae42-79187c790b31",
-      "name": "web_search",
-      "type": "n8n-nodes-base.httpRequestTool",
-      "position": [
-        160,
-        500
-      ],
+      "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
+      "position": [
+        -2100,
+        -270
+      ],
+      "id": "13f26ca1-36f9-48db-8f8f-c9f8bd290286",
+      "name": "Upload PDF to PDF.co1",
       "credentials": {
-        "anthropicApi": {
-          "id": "l8nsyOPKZPhdPs1R",
-          "name": "Anthropic account"
+        "httpBearerAuth": {
+          "id": "K1q8u1aqz0KKzpwN",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdf.co/v1/pdf/convert/to/png",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "bright@zumbador.com_YOhLhWaPTC9iNLyMEqLxj36vozhJA8LUQy5a0QXlKjBhdZdDEA95w61lILhWIWsl"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.url }}\",\n  \"pages\": \"\",\n  \"inline\": true,\n  \"async\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1880,
+        -270
+      ],
+      "id": "66e4e3bd-fee7-4c1b-9079-44b73821b94d",
+      "name": "PDF to PNG conversion"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2760,
+        -270
+      ],
+      "id": "a9356590-3f58-474f-9bec-c37dc1376da7",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const binaryData = $input.first().binary.data;\nconst fileName = binaryData.fileName || 'document.pdf';\nconst buffer = await this.helpers.getBinaryDataBuffer(0, 'data');\nconst fileBase64 = buffer.toString('base64');\nreturn [{\n  json: {\n    file: `data:application/pdf;base64,${fileBase64}`,\n    name: fileName\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2320,
+        -270
+      ],
+      "id": "f7b21363-49d3-4cbf-b16f-bfe1edc93367",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "xaraban",
+        "fileName": "=ban/pdf_summary/{{ $json.coverImageFileName }}",
+        "binaryPropertyName": "coverImage",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        -1142,
+        -120
+      ],
+      "id": "67cee06a-0e5f-49d2-95c1-fca1fcc7f0e3",
+      "name": "AWS S3",
+      "credentials": {
+        "aws": {
+          "id": "1EzY6RGV9x9KCtu0",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -624,
+        -270
+      ],
+      "id": "09294a71-2720-4961-aeeb-878e6a832a60",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\n\n// Try to get the existing fileName, or generate a unique one\nlet fileName = 'default.png';\n\nif (input.binary && input.binary.coverImage) {\n  if (input.binary.coverImage.fileName) {\n    // Use existing fileName if available\n    fileName = input.binary.coverImage.fileName;\n  } else {\n    // Generate a unique filename using timestamp\n    const timestamp = Date.now();\n    const randomSuffix = Math.random().toString(36).substring(2, 8);\n    fileName = `cover_${timestamp}_${randomSuffix}.png`;\n  }\n}\n\nreturn [{\n  json: {\n    ...input.json,\n    coverImageFileName: fileName\n  },\n  binary: input.binary\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1440,
+        -120
+      ],
+      "id": "f2f6dee8-4626-4d33-9341-55e3a41a88e4",
+      "name": "Add File name to JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\n\n// Get the filename from coverImageFileName or generate a timestamp-based one\nconst fileName = input.json.coverImageFileName || `cover_${Date.now()}.png`;\nconst fullPath = `ban/pdf_summary/${fileName}`;\n\nreturn [{\n  json: {\n    ...input.json,\n    s3Url: `https://xaraban.s3.amazonaws.com/${fullPath}`\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -844,
+        -120
+      ],
+      "id": "00f89074-471a-4e1a-8c96-4443f51ba741",
+      "name": "Add s3Url to JSON"
+    },
+    {
+      "parameters": {
+        "pageId": {
+          "__rl": true,
+          "value": "https://www.notion.so/PDF-Summary-2007112e57b980d8b998e19f93512ba1",
+          "mode": "url"
+        },
+        "title": "={{ $json.aiTitle }}",
+        "blockUi": {
+          "blockValues": [
+            {
+              "textContent": "={{ $json.block1 }}"
+            },
+            {
+              "textContent": "={{ $json.block2 }}"
+            },
+            {
+              "textContent": "={{ $json.block3 }}"
+            },
+            {
+              "textContent": "={{ $json.s3Url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -404,
+        -270
+      ],
+      "id": "6cc851d9-8956-44ac-8a9f-70ff5e7f15cd",
+      "name": "Notion_good_urlonly",
+      "credentials": {
+        "notionApi": {
+          "id": "wv5ZmtxyRwkU0dXZ",
+          "name": "Notion account"
         }
       }
     },
     {
       "parameters": {},
-      "id": "bc0578ab-7644-408e-a1ff-c32b7ec98888",
-      "name": "Think",
-      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "id": "6328576f-80af-4cdd-9ba6-134f6f3a65eb",
+      "name": "When clicking \"Test workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
       "position": [
-        40,
-        500
-      ],
-      "typeVersion": 1
+        -2380,
+        140
+      ]
     },
     {
       "parameters": {
-        "modelName": "models/gemini-2.5-flash-preview-04-17",
+        "method": "POST",
+        "url": "http://10.10.200.46:8081/api/v1/convert/pdf/img",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "multipart/form-data"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "imageFormat",
+              "value": "png"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "fileInput",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "singleOrMultiple",
+              "value": "muliple"
+            },
+            {
+              "name": "colorType",
+              "value": "color"
+            },
+            {
+              "name": "dpi",
+              "value": "72"
+            }
+          ]
+        },
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "id": "8b648082-9a29-4d01-8d64-a0d92af579d7",
+      "name": "HTTP Request | convert to IMG",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1940,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        "options": {}
+      },
+      "id": "5cf0e9af-13d4-42dd-a1dd-6e305bbc20fa",
+      "name": "HTTP Request | download dummy PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -2160,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Sterling-PDF",
+        "height": 320,
+        "width": 800
+      },
+      "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -340,
-        500
+        -2480,
+        60
       ],
-      "id": "b5086ce1-21f2-4e44-b0d1-f8c7bf0c941f",
-      "name": "Google Gemini Chat Model",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "98JqTQmfb8tBNsCz",
-          "name": "Google Gemini(PaLM) Api account"
-        }
-      }
+      "id": "f849271c-b2ad-46d9-8856-61ffa4d3524c",
+      "name": "Sticky Note",
+      "disabled": true
     }
   ],
   "connections": {
-    "Think": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "web_search": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Simple Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Anthropic Chat Model": {
-      "ai_languageModel": [
-        []
-      ]
-    },
-    "When chat message received": {
+    "On form submission": {
       "main": [
         [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Text Processing & Setup": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Cover Image": {
+      "main": [
+        [
+          {
+            "node": "Add File name to JSON",
+            "type": "main",
+            "index": 0
+          },
           {
             "node": "AI Agent",
             "type": "main",
@@ -200,7 +481,29 @@
         ]
       ]
     },
-    "Google Gemini Chat Model": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Process AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process AI Output": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
       "ai_languageModel": [
         [
           {
@@ -209,6 +512,121 @@
             "index": 0
           }
         ]
+      ]
+    },
+    "Upload PDF to PDF.co1": {
+      "main": [
+        [
+          {
+            "node": "PDF to PNG conversion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDF to PNG conversion": {
+      "main": [
+        [
+          {
+            "node": "Download Cover Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Text Processing & Setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Upload PDF to PDF.co1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AWS S3": {
+      "main": [
+        [
+          {
+            "node": "Add s3Url to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Notion_good_urlonly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add File name to JSON": {
+      "main": [
+        [
+          {
+            "node": "AWS S3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add s3Url to JSON": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "When clicking \"Test workflow\"": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request | download dummy PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request | download dummy PDF": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request | convert to IMG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request | convert to IMG": {
+      "main": [
+        []
       ]
     }
   },
@@ -220,7 +638,7 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "1758f57a-5af4-4d12-9fc7-cc92ddbf39d5",
-  "triggerCount": 1,
+  "versionId": "32808fce-b517-4692-a979-0431faae04a9",
+  "triggerCount": 0,
   "tags": []
 }
