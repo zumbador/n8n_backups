@@ -1,105 +1,217 @@
 {
-  "createdAt": "2025-06-12T19:02:14.998Z",
-  "updatedAt": "2025-06-12T19:02:14.998Z",
-  "id": "2BBdWOivGiy7fDIh",
-  "name": "Static PDFs Into Conversational AI Bots",
+  "createdAt": "2025-06-10T18:28:36.748Z",
+  "updatedAt": "2025-06-11T20:16:46.312Z",
+  "id": "Agv06fh9F7bpoQRS",
+  "name": "PDF Summary 3",
   "active": false,
-  "isArchived": false,
+  "isArchived": true,
   "nodes": [
     {
       "parameters": {
-        "respondWith": "allIncomingItems",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.2,
-      "position": [
-        1476,
-        -20
-      ],
-      "id": "5da0f1ac-86cc-4303-9ee2-ab1d04e41147",
-      "name": "Respond to Webhook"
-    },
-    {
-      "parameters": {
-        "respondWith": "allIncomingItems",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.2,
-      "position": [
-        816,
-        440
-      ],
-      "id": "2e301d3c-0a0b-4270-8ce6-7917bab3e3c3",
-      "name": "Respond to Webhook1"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.mistral.ai/v1/files",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "contentType": "multipart-form-data",
-        "bodyParameters": {
-          "parameters": [
+        "formTitle": "Submit PDF",
+        "formDescription": "Submit pdf file",
+        "formFields": {
+          "values": [
             {
-              "name": "purpose",
-              "value": "ocr"
+              "fieldLabel": "data",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -6500,
+        2230
+      ],
+      "id": "6fb1afda-bd2a-4b75-9766-a7c54c142ce1",
+      "name": "On form submission",
+      "webhookId": "2ec217c2-ca78-4e52-9ae8-379afa748812"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the PDF content: {{ $json.text }}\n\nPlease analyze this document and return **exactly** the following, with no extra commentary:\n\nTITLE: [Document title]\n\nYEAR: [Publication year]\n\nAUTHOR: [Author name(s)]\n\nPAGES: [Total page count]\n\nOVERVIEW (50 words):  \n[Write a 50-word overview of the document.]\n\nSUMMARY (300 words):  \n[Write a 300-word summary targeting \"White paper\" and the document title.]\n\nMETA DESCRIPTION (160 chars max):  \n[Write a meta description, no more than 160 characters.]\nDescribe your new note here.\n\nReview 1 (50 - 100 words):\n[Write a 150-word posotive review of the document.]",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -5180,
+        1980
+      ],
+      "id": "d6433385-46d3-4719-b15b-94b57fa7ace1",
+      "name": "AI Agent",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nlet text = input.json.output || '';\n\n// Extract title from the AI output\nconst titleMatch = text.match(/TITLE: (.+)/);\nconst aiTitle = titleMatch ? titleMatch[1].trim() : 'Untitled';\n\n// Split text into chunks that fit Notion's 2000 char limit\nconst chunks = [];\nlet remainingText = text;\n\nwhile (remainingText.length > 0) {\n  let chunk = remainingText.substring(0, 1900);\n\n  // If there's more text, try to break at a natural point\n  if (remainingText.length > 1900) {\n    const lastPeriod = chunk.lastIndexOf('. ');\n    const lastNewline = chunk.lastIndexOf('\\n');\n\n    if (lastPeriod > 1200) {\n      chunk = chunk.substring(0, lastPeriod + 1);\n    } else if (lastNewline > 1200) {\n      chunk = chunk.substring(0, lastNewline);\n    }\n  }\n\n  chunks.push(chunk.trim());\n  remainingText = remainingText.substring(chunk.length).trim();\n}\n\n// Return all original data plus split blocks, extracted title, and coverImageFileName\nreturn [{\n  json: {\n    ...input.json,\n    aiTitle: aiTitle,\n    block1: chunks[0] || '',\n    block2: chunks[1] || '',\n    block3: chunks[2] || '',\n    coverImageFileName: input.json.coverImageFileName // <-- Make sure this line is here!\n  },\n  binary: input.binary || {}\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4804,
+        2080
+      ],
+      "id": "31436f52-c42f-43d5-a8e4-d816f697b6c6",
+      "name": "Process AI Output"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -6500,
+        1640
+      ],
+      "id": "d3379b74-c490-44fe-953a-88a4ddb43ccc",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -4584,
+        2230
+      ],
+      "id": "f28eaea1-c61a-46bb-ad70-def8dc55cccb",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FIXED JavaScript Code for \"Add File name to JSON\" node:\nconst input = $input.first();\nlet fileName = 'output.png';\n\nconst binaryKey = Object.keys(input.binary)[0];\n\nif (binaryKey && input.binary[binaryKey]) {\n  // Generate a unique filename with timestamp and random string\n  const timestamp = Date.now();\n  const randomString = Math.random().toString(36).substring(2, 8);\n  const originalFileName = input.binary[binaryKey].fileName || 'output.png';\n  const fileExtension = originalFileName.split('.').pop() || 'png';\n  \n  fileName = `cover_${timestamp}_${randomString}.${fileExtension}`;\n}\n\n// Provide the COMPLETE path with unique filename\nconst completePath = \"ban/pdf_summary/\" + fileName;\n\n// Debug logging\nconsole.log('Generated fileName:', fileName);\nconsole.log('Complete path:', completePath);\nconsole.log('Binary key found:', binaryKey);\n\nreturn [{\n  json: {\n    ...input.json,\n    completePath: completePath,\n    uniqueFileName: fileName,\n    fileMeta: {\n      originalName: input.json.originalFileName || 'unknown.pdf',\n      processedAt: new Date().toISOString()\n    },\n    // Debug info\n    debug: {\n      binaryKey: binaryKey,\n      generatedPath: completePath\n    }\n  },\n  binary: input.binary\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5102,
+        2380
+      ],
+      "id": "5f05bbb2-7225-4718-932f-74c02f25e551",
+      "name": "Add File name to JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\n\n// Get the filename from coverImageFileName or generate a timestamp-based one\nconst fileName = input.json.coverImageFileName || `cover_${Date.now()}.png`;\nconst fullPath = `ban/pdf_summary/${fileName}`;\n\nreturn [{\n  json: {\n    ...input.json,\n    s3Url: `https://xaraban.s3.amazonaws.com/${fullPath}`\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4804,
+        2380
+      ],
+      "id": "f55d4e89-2fdb-4fbb-9d29-59c9c7e3564d",
+      "name": "Add s3Url to JSON"
+    },
+    {
+      "parameters": {
+        "pageId": {
+          "__rl": true,
+          "value": "https://www.notion.so/PDF-Summary-2007112e57b980d8b998e19f93512ba1",
+          "mode": "url"
+        },
+        "title": "={{ $json.aiTitle }}",
+        "blockUi": {
+          "blockValues": [
+            {
+              "textContent": "={{ $json.block1 }}"
             },
             {
-              "parameterType": "formBinaryData",
-              "name": "file",
-              "inputDataFieldName": "pdf"
+              "textContent": "={{ $json.block2 }}"
+            },
+            {
+              "textContent": "={{ $json.block3 }}"
+            },
+            {
+              "textContent": "={{ $json.s3Url }}"
             }
           ]
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
       "position": [
-        0,
-        -20
+        -4364,
+        2230
       ],
-      "id": "a58468fd-52fe-4b92-83dd-d37f272dda8c",
-      "name": "HTTP Request"
+      "id": "2860df82-9a9a-4187-abb4-ceb031813ace",
+      "name": "Notion_good_urlonly",
+      "credentials": {
+        "notionApi": {
+          "id": "wv5ZmtxyRwkU0dXZ",
+          "name": "Notion account"
+        }
+      }
     },
     {
       "parameters": {
-        "url": "=https://api.mistral.ai/v1/files/{{ $json.id }}/url",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "expiry",
-              "value": "24"
-            }
-          ]
-        },
+        "modelName": "models/gemini-2.5-flash-preview-05-20",
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
       "position": [
-        220,
-        -20
+        -5092,
+        2200
       ],
-      "id": "03771f6c-be75-4f90-a32d-5720f502aa89",
-      "name": "HTTP Request1"
+      "id": "43760c29-ea38-4078-ba3a-4a6cd36b6b64",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "98JqTQmfb8tBNsCz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "Convert from PDF",
+        "url": "={{ $json.Location }}",
+        "convertType": "toPng",
+        "advancedOptions_Image": {
+          "pages": "1"
+        }
+      },
+      "type": "n8n-nodes-pdfco.PDFco Api",
+      "typeVersion": 1,
+      "position": [
+        -5620,
+        2380
+      ],
+      "id": "c14ee4d6-4adc-4a52-b932-e3bd1c53a9eb",
+      "name": "PDFco Api",
+      "credentials": {
+        "pdfcoApi": {
+          "id": "PAcs9bTz82LKZSjr",
+          "name": "PDF.co account"
+        }
+      }
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.mistral.ai/v1/ocr",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "url": "https://s3-presigned-url-service-production.up.railway.app",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"mistral-ocr-latest\",\n  \"document\": {\n    \"type\": \"document_url\",\n    \"document_url\": \"{{ $json.url }}\"\n  },\n  \"include_image_base64\": true\n}",
+        "jsonBody": "={\n  \"filename\": \"{{ $json.originalFileName }}\",\n  \"contentType\": \"application/pdf\"\n}",
         "options": {
           "response": {
             "response": {
@@ -111,277 +223,207 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        440,
-        -20
+        -6500,
+        1380
       ],
-      "id": "93b460e7-f4a7-412d-bb14-a554b2730db5",
-      "name": "HTTP Request2"
+      "id": "b5753cff-a542-496c-ac6a-583cf6597b7a",
+      "name": "Generate S3 Presigned URL"
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\n\nconst pages = data.pages;\nconst pagesProcessed = data.usage_info?.pages_processed || 0;\n\nconst combinedMarkdown = pages\n  .map(page => page.markdown || '') // ensure safety on missing markdown\n  .join('\\n\\n'); // separate with double newlines\n\nreturn [{\n  json: {\n    combinedMarkdown,\n    pagesProcessed\n  }\n}];"
+        "jsCode": "// Fallback to the bucket + key combination\nelse if (input.json.Bucket && input.json.key) {\n  actualS3Key = input.json.key;\n  fileName = actualS3Key.split('/').pop();\n  console.log('Found S3 key from bucket response:', actualS3Key);\n}\n// Another fallback - construct from Location if available\nelse if (input.json.Location) {\n  // Extract the key from the full S3 URL\n  const urlParts = input.json.Location.split('.amazonaws.com/');\n  if (urlParts.length > 1) {\n    actualS3Key = urlParts[1];\n    fileName = actualS3Key.split('/').pop();\n    console.log('Extracted S3 key from Location:', actualS3Key);\n  }\n}\n\n// Final fallback to originalFileName\nif (!fileName) {\n  fileName = input.json.originalFileName;\n  if (fileName) {\n    actualS3Key = `ban/pdf_summary/${fileName}`;\n    console.log('Using originalFileName as fallback:', fileName);\n  }\n}\n\n// Emergency fallback\nif (!fileName || fileName === 'undefined') {\n  console.log('❌ Emergency fallback triggered');\n  const timestamp = Date.now();\n  fileName = `document_${timestamp}.pdf`;\n  actualS3Key = `ban/pdf_summary/${fileName}`;\n}\n\n// Clean filename if needed\nfileName = fileName.toString().replace(/[<>:\"/\\\\|?*]/g, '_');\nif (!fileName.toLowerCase().endsWith('.pdf')) {\n  fileName = fileName.split('.')[0] + '.pdf';\n}\n\nconsole.log('✅ Final filename:', fileName);\nconsole.log('✅ Final S3 key:', actualS3Key);\n\n// Build the complete S3 URL using the actual S3 key\nconst bucketName = 'xaraban';\nconst pdfUrl = `https://${bucketName}.s3.amazonaws.com/${actualS3Key}`;\n\nconsole.log('📎 Complete PDF URL:', pdfUrl);\n\n// Validate URL format\nconst isValidUrl = pdfUrl.startsWith('https://') && \n                  pdfUrl.includes('s3.amazonaws.com') && \n                  pdfUrl.endsWith('.pdf') &&\n                  !pdfUrl.includes('undefined');\n\nconsole.log('🔍 URL validation passed:', isValidUrl);\n\nif (!isValidUrl) {\n  throw new Error(`Generated invalid URL: ${pdfUrl}`);\n}\n\nconsole.log('=================================');\n\nreturn [{\n  json: {\n    ...input.json,\n    Location: pdfUrl,\n    pdfUrl: pdfUrl,\n    actualS3Key: actualS3Key,\n    originalFileName: fileName,\n    urlGeneratedAt: new Date().toISOString(),\n    urlValid: isValidUrl,\n    urlGenerationMethod: 'S3_response_based'\n  },\n  binary: input.binary\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        660,
-        -20
+        -5860,
+        1540
       ],
-      "id": "534d6eda-b9e8-4796-a40d-78e8d43f4faf",
-      "name": "Code"
+      "id": "67a9bccc-9d75-4181-a552-810e0e755dfd",
+      "name": "Generate PDF URL"
     },
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "receive-pdf",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
-      "position": [
-        -220,
-        -20
-      ],
-      "id": "b0e84629-5510-4d17-b560-1d5d760de9a9",
-      "name": "PDF RECIEVER",
-      "webhookId": "a88a8171-43a6-4a0a-b351-669b761c4f80"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=You are an expert content analyst. Analyze the following complete markdown of a PDF. Read through all sections carefully, identify the core themes, key points, and important takeaways. Then, write a concise summary of the entire PDF in exactly 75 words. Focus on what the PDF is about, who it’s for, what problems it addresses, and the main conclusions or insights. Avoid unnecessary jargon. Keep the summary informative and clear.\nPages Proccesd : {{ $json.pagesProcessed }}\nMarkdown Content Starts Below:\n{{ $json.combinedMarkdown }}\n\ngive the language in full form",
-        "hasOutputParser": true,
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 1.9,
-      "position": [
-        880,
-        -20
-      ],
-      "id": "4f9adb12-3bff-4315-86dd-2e190787fb18",
-      "name": "AI Agent"
-    },
-    {
-      "parameters": {
-        "modelName": "models/gemini-2.0-flash-thinking-exp-1219",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1,
-      "position": [
-        908,
-        200
-      ],
-      "id": "668e578b-7f7d-4370-b300-1cd24a17a90c",
-      "name": "Google Gemini Chat Model"
-    },
-    {
-      "parameters": {
-        "schemaType": "manual",
-        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"summary\": {\n      \"type\": \"string\",\n      \"description\": \"A 150-word summary of the document content\"\n    },\n    \"totalPages\": {\n      \"type\": \"integer\",\n      \"description\": \"The total number of pages processed in the document\"\n    },\n    \"totalWords\": {\n      \"type\": \"integer\",\n      \"description\": \"Total number of words in the document\"\n    },\n    \"language\": {\n      \"type\": \"string\",\n      \"description\": \"Language in which the document content is written\"\n    }\n  },\n  \"required\": [\"summary\", \"totalPages\", \"totalWords\", \"language\"]\n}\n"
-      },
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.2,
-      "position": [
-        1028,
-        200
-      ],
-      "id": "df6ed568-fdb5-4f54-81d9-5d48dcf3894a",
-      "name": "Structured Output Parser"
-    },
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "message-receive",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
-      "position": [
-        -220,
-        440
-      ],
-      "id": "ed8c9e19-afb3-490c-9995-6ba56843e269",
-      "name": "Message Receiving webhook",
-      "webhookId": "5221a79c-7222-4245-98ec-01d6b56d20c7"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=You are a helpful assistant for answering user queries based on uploaded PDF documents.\n\n**User's Question:**\n\n{{ $items(\"Message Receiving webhook\").map(i => i.json.body.message).join(\", \") }}\n\n\n**PDF Content Analysis:**\n{{ $json.formatted_text }}\n\n**Processing Summary:**\n- Unique PDFs processed: {{ $json.unique_count }}\n- Duplicates removed: Any PDFs with identical names were automatically filtered out\n- Content source: All information below comes from the {{ $json.unique_count }} unique PDF document(s)\n\n**Instructions:**\n1. Analyze all provided PDF content thoroughly\n2. Answer the user's question using only the information from these PDFs\n3. If referencing specific information, mention which PDF it came from\n4. If the question cannot be fully answered from the available PDFs, clearly state what information is missing\n5. Provide a clear, structured response that directly addresses the user's query\n\n**Response Guidelines:**\n- Be accurate and factual\n- Use clear, professional language\n- Organize information logically\n- Cite specific PDF sources when relevant\n- Acknowledge any limitations in the available data\n\nBegin your analysis and response now.\n",
-        "hasOutputParser": true,
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 1.9,
-      "position": [
-        440,
-        440
-      ],
-      "id": "f5e2164b-72e1-411c-8aad-780a6f1f8a81",
-      "name": "AI Agent1"
-    },
-    {
-      "parameters": {
-        "schemaType": "manual",
-        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"answer\": {\n      \"type\": \"string\",\n      \"description\": \"The assistant's reply to the user's question based on the PDF content\"\n    },\n    \"relevanceScore\": {\n      \"type\": \"number\",\n      \"description\": \"A score between 0 and 1 indicating how confident the assistant is in the answer\"\n    }\n  },\n  \"required\": [\"answer\", \"relevanceScore\"]\n}\n"
-      },
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.2,
-      "position": [
-        588,
-        660
-      ],
-      "id": "6932d25d-ac49-47c6-a41a-78b035baa585",
-      "name": "Structured Output Parser1"
-    },
-    {
-      "parameters": {
-        "modelName": "models/gemini-2.5-flash-preview-05-20",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1,
-      "position": [
-        468,
-        660
-      ],
-      "id": "4e911f73-9aa5-4204-8445-d52cd98cb717",
-      "name": "Google Gemini Chat Model1"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "12cb4e8f-0d26-4dd5-b8d0-69ed64e980dd",
-              "name": "Summary",
-              "value": "={{ $json.output.summary }}",
-              "type": "string"
-            },
-            {
-              "id": "9bae465b-33c7-4713-bfc9-7daf50e49ae7",
-              "name": "totalPages",
-              "value": "={{ $json.output.totalPages }}",
-              "type": "number"
-            },
-            {
-              "id": "2dc077df-5145-46da-97b2-886110bd6770",
-              "name": "totalWords",
-              "value": "={{ $json.output.totalWords }}",
-              "type": "number"
-            },
-            {
-              "id": "ef6bbccd-8882-4ca3-9d20-59d8f087f28a",
-              "name": "language",
-              "value": "={{ $json.output.language }}",
-              "type": "string"
-            },
-            {
-              "id": "9692167e-37dc-4c90-b048-73ab6933d1ac",
-              "name": "ocr",
-              "value": "={{ $('Code').item.json.combinedMarkdown }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        1256,
-        -20
-      ],
-      "id": "334f05be-073f-4da1-a37e-916db100b41c",
-      "name": "Edit Fields"
-    },
-    {
-      "parameters": {
-        "operation": "getAll",
-        "tableId": "PDF_DATA_INFO",
-        "returnAll": true,
-        "filterType": "string",
-        "filterString": "=id=in.({{ $('Message Receiving webhook').item.json.body.pdfIds.join(',') }})"
-      },
-      "type": "n8n-nodes-base.supabase",
-      "typeVersion": 1,
-      "position": [
-        0,
-        440
-      ],
-      "id": "47dbad24-f345-4cb1-884a-515e5122fab0",
-      "name": "Supabase"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Get the input data\nconst inputData = $input.all();\n\n// Use Map to store unique items (key = PDF NAME, value = PDF SUMMARY)\nconst uniqueItems = new Map();\n\ninputData.forEach(item => {\n  const pdfName = item.json['PDF NAME'];\n  const ocrText = item.json['OCR OF PDF'];\n  \n  // Use PDF NAME as key to avoid duplicates\n  if (pdfName && !uniqueItems.has(pdfName)) {\n    uniqueItems.set(pdfName, ocrText);\n  }\n});\n\n// Create formatted text from unique items\nconst formattedSections = Array.from(uniqueItems.entries()).map(([name, ocr]) => \n  `name : ${name}\\nocr : ${ocr}`\n);\n\nconst finalText = formattedSections.join('\\n\\n---\\n\\n');\n\nreturn [{\n  json: {\n    formatted_text: finalText,\n    unique_count: uniqueItems.size\n  }\n}];\n"
+        "jsCode": "const items = $input.all();\n\nreturn items.map((item, index) => {\n  console.log(`=== PROCESSING ITEM ${index + 1} ===`);\n  console.log('Full item structure:', JSON.stringify(item, null, 2));\n  \n  let originalFileName = null;\n  let binaryData = {};\n  \n  // Method 1: Check if binary data exists and extract filename\n  if (item.binary && Object.keys(item.binary).length > 0) {\n    console.log('Binary data found. Keys:', Object.keys(item.binary));\n    \n    // Usually the form field name is 'data' for file uploads\n    const binaryKey = Object.keys(item.binary)[0]; // Get first binary key\n    console.log('Using binary key:', binaryKey);\n    \n    if (item.binary[binaryKey]) {\n      binaryData = {};\n      binaryData[binaryKey] = item.binary[binaryKey];\n      \n      // Extract filename from binary data\n      const binaryInfo = item.binary[binaryKey];\n      console.log('Binary info:', {\n        fileName: binaryInfo.fileName,\n        mimeType: binaryInfo.mimeType,\n        fileExtension: binaryInfo.fileExtension,\n        hasData: !!binaryInfo.data\n      });\n      \n      // Try multiple ways to get filename\n      originalFileName = binaryInfo.fileName || \n                       binaryInfo.filename || \n                       binaryInfo.name ||\n                       binaryInfo.originalname;\n      \n      console.log('Extracted filename:', originalFileName);\n    }\n  }\n  \n  // Method 2: Check form data structure\n  if (!originalFileName && item.json) {\n    console.log('Checking JSON structure for filename...');\n    \n    // Check if there's form data with filename\n    if (item.json.data && Array.isArray(item.json.data)) {\n      const fileField = item.json.data.find(field => \n        field.fieldName === 'data' || \n        field.fieldType === 'file' ||\n        field.filename ||\n        field.fileName\n      );\n      \n      if (fileField) {\n        originalFileName = fileField.filename || \n                         fileField.fileName || \n                         fileField.name;\n        console.log('Found filename in form data:', originalFileName);\n      }\n    }\n    \n    // Direct filename fields\n    if (!originalFileName) {\n      originalFileName = item.json.filename || \n                       item.json.fileName || \n                       item.json.originalFileName ||\n                       item.json.name;\n      console.log('Found filename in JSON:', originalFileName);\n    }\n  }\n  \n  // Method 3: Generate filename if still not found - BUT KEEP IT SIMPLE\n  if (!originalFileName || originalFileName === 'undefined' || originalFileName === '') {\n    console.log('No filename found, using default...');\n    // Use a simple default that won't cause issues\n    originalFileName = 'uploaded-document.pdf';\n    console.log('Using default filename:', originalFileName);\n  }\n  \n  // Clean up filename (remove any problematic characters but preserve original name structure)\n  // Only replace truly problematic characters, keep hyphens and underscores\n  originalFileName = originalFileName.replace(/[<>:\"/\\\\|?*]/g, '_');\n  \n  // Ensure .pdf extension\n  if (!originalFileName.toLowerCase().endsWith('.pdf')) {\n    const nameWithoutExt = originalFileName.split('.')[0];\n    originalFileName = nameWithoutExt + '.pdf';\n  }\n  \n  console.log('Final filename:', originalFileName);\n  \n  // Validation\n  const hasValidFilename = originalFileName && originalFileName !== 'undefined';\n  const hasValidBinary = Object.keys(binaryData).length > 0;\n  \n  console.log('Validation:');\n  console.log('- Valid filename:', hasValidFilename);\n  console.log('- Valid binary data:', hasValidBinary);\n  console.log('- Binary data keys:', Object.keys(binaryData));\n  \n  if (hasValidBinary) {\n    const firstBinaryKey = Object.keys(binaryData)[0];\n    console.log('- Binary data size:', binaryData[firstBinaryKey]?.data?.length || 'unknown');\n  }\n  \n  console.log('================================');\n  \n  return {\n    json: {\n      ...item.json,\n      originalFileName: originalFileName,\n      processingTimestamp: new Date().toISOString(),\n      validationStatus: {\n        hasFilename: hasValidFilename,\n        hasBinary: hasValidBinary,\n        readyForUpload: hasValidFilename && hasValidBinary\n      },\n      extractionMethod: 'enhanced_extraction_v3'\n    },\n    binary: binaryData\n  };\n});"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        220,
-        440
+        -6280,
+        2230
       ],
-      "id": "765a5603-4c6c-4efe-a630-b10bece85075",
-      "name": "Code1"
+      "id": "6efbedaf-2877-4a05-856b-cc3ac4900fae",
+      "name": "Binary Data Extraction"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -5400,
+        2080
+      ],
+      "id": "92b043f3-f207-48e3-9330-24e90beae2db",
+      "name": "Extract from File1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "xaraban",
+        "fileName": "=ban/pdf_summary/{{ $json.originalFileName }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        -6060,
+        2380
+      ],
+      "id": "ec228c86-e292-4fae-9fc0-596735c1bae2",
+      "name": "AWS S31 URL",
+      "credentials": {
+        "aws": {
+          "id": "1EzY6RGV9x9KCtu0",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "xaraban",
+        "fileName": "=ban/pdf_summary/{{ $json.originalFileName }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        -5400,
+        2380
+      ],
+      "id": "558de7bd-f8f9-4bc7-be5e-60f91329a02c",
+      "name": "AWS S3 PNG",
+      "credentials": {
+        "aws": {
+          "id": "1EzY6RGV9x9KCtu0",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const bucket = 'xaraban';\n\n/* get the first value that exists */\nconst key =\n  $json.Key ||           // S3 node response (capital K)\n  $json.key ||           // some very old n8n versions\n  $json.fileName ||      // other nodes sometimes add this\n  ($json.originalFileName               // last resort\n     ? `ban/pdf_summary/${$json.originalFileName}`\n     : null);\n\nif (!key) {\n  throw new Error('No S3 key or file name found – cannot build URL');\n}\n\nreturn [{\n  json: {\n    ...$json,\n    pdfUrl: `https://${bucket}.s3.amazonaws.com/${encodeURIComponent(key)}`\n  },\n  binary: $binary\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5920,
+        1880
+      ],
+      "id": "e7fc0024-6cfc-43cf-b574-a95330903d57",
+      "name": "One liner"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        -5380,
+        1460
+      ],
+      "id": "bd44eee5-8885-4bc1-b7c5-c6c83d20191c",
+      "name": "Dropbox_up",
+      "credentials": {
+        "dropboxApi": {
+          "id": "23G4v9nkME5X5gPz",
+          "name": "Dropbox account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.dropboxTool",
+      "typeVersion": 1,
+      "position": [
+        -4920,
+        1500
+      ],
+      "id": "e55cf51f-f36c-4f9c-bcd1-122f3a9b7a6b",
+      "name": "Dropbox"
     }
   ],
   "connections": {
-    "HTTP Request": {
+    "On form submission": {
       "main": [
         [
           {
-            "node": "HTTP Request1",
+            "node": "Binary Data Extraction",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP Request1": {
+    "AI Agent": {
       "main": [
         [
           {
-            "node": "HTTP Request2",
+            "node": "Process AI Output",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP Request2": {
+    "Process AI Output": {
       "main": [
         [
           {
-            "node": "Code",
+            "node": "Merge1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "PDF RECIEVER": {
+    "Merge": {
+      "main": [
+        []
+      ]
+    },
+    "Merge1": {
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "Notion_good_urlonly",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code": {
+    "Add File name to JSON": {
       "main": [
         [
           {
-            "node": "AI Agent",
+            "node": "Add s3Url to JSON",
             "type": "main",
             "index": 0
+          }
+        ]
+      ]
+    },
+    "Add s3Url to JSON": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
           }
         ]
       ]
@@ -397,103 +439,79 @@
         ]
       ]
     },
-    "AI Agent": {
+    "PDFco Api": {
       "main": [
         [
           {
-            "node": "Edit Fields",
+            "node": "AWS S3 PNG",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Structured Output Parser": {
-      "ai_outputParser": [
+    "Generate S3 Presigned URL": {
+      "main": [
+        []
+      ]
+    },
+    "Generate PDF URL": {
+      "main": [
+        []
+      ]
+    },
+    "Binary Data Extraction": {
+      "main": [
+        [
+          {
+            "node": "AWS S31 URL",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
         [
           {
             "node": "AI Agent",
-            "type": "ai_outputParser",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Message Receiving webhook": {
-      "main": [
-        [
-          {
-            "node": "Supabase",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Structured Output Parser1": {
-      "ai_outputParser": [
-        [
-          {
-            "node": "AI Agent1",
-            "type": "ai_outputParser",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Google Gemini Chat Model1": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "AI Agent1",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent1": {
+    "AWS S31 URL": {
       "main": [
         [
           {
-            "node": "Respond to Webhook1",
+            "node": "PDFco Api",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Edit Fields": {
+    "AWS S3 PNG": {
       "main": [
         [
           {
-            "node": "Respond to Webhook",
+            "node": "Add File name to JSON",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Supabase": {
+    "One liner": {
       "main": [
-        [
-          {
-            "node": "Code1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code1": {
-      "main": [
-        [
-          {
-            "node": "AI Agent1",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     }
   },
@@ -501,9 +519,11 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "f7940fe8-0c2b-466b-9a13-f1b330258d2a",
-  "triggerCount": 0,
+  "versionId": "abdcbf07-5250-4d44-88f9-1a40efdf5051",
+  "triggerCount": 1,
   "tags": []
 }
