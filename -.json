@@ -1,31 +1,231 @@
 {
-  "createdAt": "2025-06-13T14:51:46.482Z",
-  "updatedAt": "2025-06-13T14:51:46.482Z",
-  "id": "UTUVl20TvZ6qiqDj",
-  "name": "My workflow 10",
-  "active": false,
+  "createdAt": "2025-06-11T20:02:42.933Z",
+  "updatedAt": "2025-06-13T14:43:14.248Z",
+  "id": "vRo31gG7fpG76CWG",
+  "name": "PDF Summary",
+  "active": true,
   "isArchived": false,
   "nodes": [
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
+      "parameters": {
+        "formTitle": "Submit PDF",
+        "formDescription": "Submit pdf file",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "data",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -6500,
+        3100
+      ],
+      "id": "917b75c6-6019-4fdf-bea1-aa0aa5d12792",
+      "name": "On form submission",
+      "webhookId": "296d51cf-550a-476f-be81-4aa1b5ebc4c4"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the PDF content: {{ $json.text }}\n\nPlease analyze this document and return **exactly** the following, with no extra commentary:\n\nTITLE: [Document title]\n\nYEAR: [Publication year]\n\nAUTHOR: [Author name(s)]\n\nPAGES: [Total page count]\n\nOVERVIEW (50 words):  \n[Write a 50-word overview of the document.]\n\nSUMMARY (300 words):  \n[Write a 300-word summary targeting \"White paper\" and the document title.]\n\nMETA DESCRIPTION (160 chars max):  \n[Write a meta description, no more than 160 characters.]\nDescribe your new note here.\n\nReview 1 (50 - 100 words):\n[Write a 150-word posotive review of the document.]",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -5840,
+        3100
+      ],
+      "id": "b5ac998b-62a2-49fd-b721-ae294f4a9f10",
+      "name": "AI Agent",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nlet text = input.json.output || '';\n\n// Extract title from the AI output\nconst titleMatch = text.match(/TITLE: (.+)/);\nconst aiTitle = titleMatch ? titleMatch[1].trim() : 'Untitled';\n\n// Split text into chunks that fit Notion's 2000 char limit\nconst chunks = [];\nlet remainingText = text;\n\nwhile (remainingText.length > 0) {\n  let chunk = remainingText.substring(0, 1900);\n\n  // If there's more text, try to break at a natural point\n  if (remainingText.length > 1900) {\n    const lastPeriod = chunk.lastIndexOf('. ');\n    const lastNewline = chunk.lastIndexOf('\\n');\n\n    if (lastPeriod > 1200) {\n      chunk = chunk.substring(0, lastPeriod + 1);\n    } else if (lastNewline > 1200) {\n      chunk = chunk.substring(0, lastNewline);\n    }\n  }\n\n  chunks.push(chunk.trim());\n  remainingText = remainingText.substring(chunk.length).trim();\n}\n\n// Return all original data plus split blocks, extracted title, and coverImageFileName\nreturn [{\n  json: {\n    ...input.json,\n    aiTitle: aiTitle,\n    block1: chunks[0] || '',\n    block2: chunks[1] || '',\n    block3: chunks[2] || '',\n    coverImageFileName: input.json.coverImageFileName // <-- Make sure this line is here!\n  },\n  binary: input.binary || {}\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5464,
+        3100
+      ],
+      "id": "827a0152-84fc-406f-a13c-b89ac153d4ea",
+      "name": "Process AI Output"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-preview-05-20",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        0,
-        0
+        -5752,
+        3320
       ],
-      "id": "40269e0c-0895-4b82-b569-f11c5c7a3e55",
-      "name": "When clicking ‘Execute workflow’"
+      "id": "06f37eb9-ee4d-4b92-8663-5d1e8017c246",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "98JqTQmfb8tBNsCz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map((item, index) => {\n  console.log(`=== PROCESSING ITEM ${index + 1} ===`);\n  console.log('Full item structure:', JSON.stringify(item, null, 2));\n  \n  let originalFileName = null;\n  let binaryData = {};\n  \n  // Method 1: Check if binary data exists and extract filename\n  if (item.binary && Object.keys(item.binary).length > 0) {\n    console.log('Binary data found. Keys:', Object.keys(item.binary));\n    \n    // Usually the form field name is 'data' for file uploads\n    const binaryKey = Object.keys(item.binary)[0]; // Get first binary key\n    console.log('Using binary key:', binaryKey);\n    \n    if (item.binary[binaryKey]) {\n      binaryData = {};\n      binaryData[binaryKey] = item.binary[binaryKey];\n      \n      // Extract filename from binary data\n      const binaryInfo = item.binary[binaryKey];\n      console.log('Binary info:', {\n        fileName: binaryInfo.fileName,\n        mimeType: binaryInfo.mimeType,\n        fileExtension: binaryInfo.fileExtension,\n        hasData: !!binaryInfo.data\n      });\n      \n      // Try multiple ways to get filename\n      originalFileName = binaryInfo.fileName || \n                       binaryInfo.filename || \n                       binaryInfo.name ||\n                       binaryInfo.originalname;\n      \n      console.log('Extracted filename:', originalFileName);\n    }\n  }\n  \n  // Method 2: Check form data structure\n  if (!originalFileName && item.json) {\n    console.log('Checking JSON structure for filename...');\n    \n    // Check if there's form data with filename\n    if (item.json.data && Array.isArray(item.json.data)) {\n      const fileField = item.json.data.find(field => \n        field.fieldName === 'data' || \n        field.fieldType === 'file' ||\n        field.filename ||\n        field.fileName\n      );\n      \n      if (fileField) {\n        originalFileName = fileField.filename || \n                         fileField.fileName || \n                         fileField.name;\n        console.log('Found filename in form data:', originalFileName);\n      }\n    }\n    \n    // Direct filename fields\n    if (!originalFileName) {\n      originalFileName = item.json.filename || \n                       item.json.fileName || \n                       item.json.originalFileName ||\n                       item.json.name;\n      console.log('Found filename in JSON:', originalFileName);\n    }\n  }\n  \n  // Method 3: Generate filename if still not found - BUT KEEP IT SIMPLE\n  if (!originalFileName || originalFileName === 'undefined' || originalFileName === '') {\n    console.log('No filename found, using default...');\n    // Use a simple default that won't cause issues\n    originalFileName = 'uploaded-document.pdf';\n    console.log('Using default filename:', originalFileName);\n  }\n  \n  // Clean up filename (remove any problematic characters but preserve original name structure)\n  // Only replace truly problematic characters, keep hyphens and underscores\n  originalFileName = originalFileName.replace(/[<>:\"/\\\\|?*]/g, '_');\n  \n  // Ensure .pdf extension\n  if (!originalFileName.toLowerCase().endsWith('.pdf')) {\n    const nameWithoutExt = originalFileName.split('.')[0];\n    originalFileName = nameWithoutExt + '.pdf';\n  }\n  \n  console.log('Final filename:', originalFileName);\n  \n  // Validation\n  const hasValidFilename = originalFileName && originalFileName !== 'undefined';\n  const hasValidBinary = Object.keys(binaryData).length > 0;\n  \n  console.log('Validation:');\n  console.log('- Valid filename:', hasValidFilename);\n  console.log('- Valid binary data:', hasValidBinary);\n  console.log('- Binary data keys:', Object.keys(binaryData));\n  \n  if (hasValidBinary) {\n    const firstBinaryKey = Object.keys(binaryData)[0];\n    console.log('- Binary data size:', binaryData[firstBinaryKey]?.data?.length || 'unknown');\n  }\n  \n  console.log('================================');\n  \n  return {\n    json: {\n      ...item.json,\n      originalFileName: originalFileName,\n      processingTimestamp: new Date().toISOString(),\n      validationStatus: {\n        hasFilename: hasValidFilename,\n        hasBinary: hasValidBinary,\n        readyForUpload: hasValidFilename && hasValidBinary\n      },\n      extractionMethod: 'enhanced_extraction_v3'\n    },\n    binary: binaryData\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6280,
+        3100
+      ],
+      "id": "3dc03617-5314-43dc-a250-f55bdc347f40",
+      "name": "Binary Data Extraction"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -6060,
+        3100
+      ],
+      "id": "3e11a87e-304e-4b44-93c2-e84de6c4fa26",
+      "name": "Extract from File1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "2087112e-57b9-80d4-af14-e4989ea2920c",
+          "mode": "list",
+          "cachedResultName": "PDF Summary table",
+          "cachedResultUrl": "https://www.notion.so/2087112e57b980d4af14e4989ea2920c"
+        },
+        "title": "={{ $json.aiTitle }}",
+        "blockUi": {
+          "blockValues": [
+            {
+              "textContent": "={{ $json.block1 }}"
+            },
+            {
+              "textContent": "={{ $json.block2 }}"
+            },
+            {
+              "textContent": "={{ $json.block3 }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -5244,
+        3100
+      ],
+      "id": "82663fbf-57b5-466f-9369-ac31c6fed6c4",
+      "name": "Notion_PDF Summary TABLE",
+      "credentials": {
+        "notionApi": {
+          "id": "wv5ZmtxyRwkU0dXZ",
+          "name": "Notion account"
+        }
+      }
     }
   ],
-  "connections": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Binary Data Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Process AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process AI Output": {
+      "main": [
+        [
+          {
+            "node": "Notion_PDF Summary TABLE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Binary Data Extraction": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
   "settings": {
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "f43519e8-2fd2-427f-a583-69bc7a9f58de",
-  "triggerCount": 0,
+  "versionId": "aa881900-8115-4070-9f64-8d5c903e9d59",
+  "triggerCount": 1,
   "tags": []
 }
