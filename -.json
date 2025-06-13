@@ -1,39 +1,165 @@
 {
-  "createdAt": "2025-06-12T19:24:36.907Z",
-  "updatedAt": "2025-06-12T19:24:36.907Z",
-  "id": "hg1ArFmfIBakg1MF",
-  "name": "Firecrawl Scrape Url Sub-Workflow",
+  "createdAt": "2025-06-06T20:34:55.413Z",
+  "updatedAt": "2025-06-08T04:27:32.766Z",
+  "id": "ijoXxbyMFMgI3ezJ",
+  "name": "My workflow 2 import",
   "active": false,
-  "isArchived": false,
+  "isArchived": true,
   "nodes": [
     {
       "parameters": {
-        "workflowInputs": {
+        "formTitle": "Submit PDF",
+        "formDescription": "Submit pdf file",
+        "formFields": {
           "values": [
             {
-              "name": "url"
+              "fieldLabel": "data",
+              "fieldType": "file"
             }
           ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -2820,
+        -680
+      ],
+      "id": "14bfdb83-64bf-4b0b-8444-3568906cc7da",
+      "name": "On form submission",
+      "webhookId": "f766ed71-52de-4747-bf1e-2020cbe40928"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -2600,
+        -600
+      ],
+      "id": "d377ea23-0884-4c28-b152-601ccc202238",
+      "name": "Extract from File",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nconst fullText = input.json.text || '';\nconst binaryData = input.binary || {};\n\n// Find the binary property key (usually 'data')\nconst binaryKey = Object.keys(binaryData)[0];\n\n// Only proceed if binaryKey exists\nif (binaryKey && binaryData[binaryKey]) {\n  // Figure out the file name\n  const fileName =\n    input.json.fileName ||\n    input.json.originalFileName ||\n    'document.pdf';\n\n  // Attach the file name to the binary property\n  binaryData[binaryKey].fileName = fileName;\n}\n\n// Process text length\nlet processedText;\nif (fullText.length <= 8000) {\n  processedText = fullText;\n} else {\n  const start = fullText.substring(0, 4000);\n  const end = fullText.substring(fullText.length - 2000);\n  const middle = fullText.substring(\n    Math.floor(fullText.length / 2) - 1000,\n    Math.floor(fullText.length / 2) + 1000\n  );\n  processedText =\n    start +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    middle +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    end;\n}\n\n// Now processedText is defined and can be used in the return\nreturn [\n  {\n    json: {\n      text: processedText,\n      needsCoverExtraction: true,\n      originalFileName: (binaryKey && binaryData[binaryKey] && binaryData[binaryKey].fileName) || 'document.pdf'\n    },\n    binary: binaryData\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2160,
+        -680
+      ],
+      "id": "2772a6e4-efdc-4ec4-997f-56bd4a21818d",
+      "name": "Text Processing & Setup"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.urls[0] }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "file",
+              "outputPropertyName": "coverImage"
+            }
+          }
         }
       },
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
-        -240,
-        -80
+        -1280,
+        -680
       ],
-      "id": "38a346d6-497a-46ea-8d9d-cec2ad018fa1",
-      "name": "workflow_trigger"
+      "id": "13f145b6-8aab-41ff-978a-6e1a3e762828",
+      "name": "Download Cover Image"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the original text data from the Check Cover Extraction node\nconst originalData = $input.first().json;\nconst imageData = $input.last().binary?.coverImage;\n\nreturn [{\n  json: {\n    text: originalData.text,\n    hasCoverImage: !!imageData,\n    coverImageName: imageData ? 'cover-page.png' : null\n  },\n  binary: imageData ? {\n    coverImage: imageData\n  } : {}\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1060,
+        -840
+      ],
+      "id": "8d2961b9-6941-4b8d-a012-5e448160c2f4",
+      "name": "Combine Text & Image"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the PDF content: {{ $json.text }}\n\nPlease analyze this document and return **exactly** the following, with no extra commentary:\n\nTITLE: [Document title]\n\nYEAR: [Publication year]\n\nAUTHOR: [Author name(s)]\n\nPAGES: [Total page count]\n\nOVERVIEW (50 words):  \n[Write a 50-word overview of the document.]\n\nSUMMARY (300 words):  \n[Write a 300-word summary targeting \"White paper\" and the document title.]\n\nMETA DESCRIPTION (160 chars max):  \n[Write a meta description, no more than 160 characters.]\nDescribe your new note here.\n\nReview 1 (50 - 100 words):\n[Write a 150-word posotive review of the document.]",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -840,
+        -940
+      ],
+      "id": "ec8b019a-1b0d-421e-99a5-da4dfa6939d7",
+      "name": "AI Agent",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nlet text = input.json.output || '';\n\n// Extract title from the AI output\nconst titleMatch = text.match(/TITLE: (.+)/);\nconst aiTitle = titleMatch ? titleMatch[1].trim() : 'Untitled';\n\n// Split text into chunks that fit Notion's 2000 char limit\nconst chunks = [];\nlet remainingText = text;\n\nwhile (remainingText.length > 0) {\n  let chunk = remainingText.substring(0, 1900);\n\n  // If there's more text, try to break at a natural point\n  if (remainingText.length > 1900) {\n    const lastPeriod = chunk.lastIndexOf('. ');\n    const lastNewline = chunk.lastIndexOf('\\n');\n\n    if (lastPeriod > 1200) {\n      chunk = chunk.substring(0, lastPeriod + 1);\n    } else if (lastNewline > 1200) {\n      chunk = chunk.substring(0, lastNewline);\n    }\n  }\n\n  chunks.push(chunk.trim());\n  remainingText = remainingText.substring(chunk.length).trim();\n}\n\n// Return all original data plus split blocks, extracted title, and coverImageFileName\nreturn [{\n  json: {\n    ...input.json,\n    aiTitle: aiTitle,\n    block1: chunks[0] || '',\n    block2: chunks[1] || '',\n    block3: chunks[2] || '',\n    coverImageFileName: input.json.coverImageFileName // <-- Make sure this line is here!\n  },\n  binary: input.binary || {}\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        -840
+      ],
+      "id": "9cfaa144-571a-4a03-89fc-6f28f922103d",
+      "name": "Process AI Output"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-opus-4-20250514",
+          "mode": "list",
+          "cachedResultName": "Claude Opus 4"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -760,
+        -720
+      ],
+      "id": "d5d9d1bc-1aed-4d8a-af2f-982bf6d7ff15",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "l8nsyOPKZPhdPs1R",
+          "name": "Anthropic account"
+        }
+      }
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.firecrawl.dev/v1/scrape",
+        "url": "https://api.pdf.co/v1/file/upload/base64",
         "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "genericAuthType": "httpBearerAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "=bright@zumbador.com_YOhLhWaPTC9iNLyMEqLxj36vozhJA8LUQy5a0QXlKjBhdZdDEA95w61lILhWIWsl"
+            },
             {
               "name": "Content-Type",
               "value": "application/json"
@@ -42,31 +168,412 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"url\": \"{{ $json.url }}\",\n  \"formats\": [\"json\", \"markdown\", \"rawHtml\", \"links\"],\n  \"excludeTags\": [\"iframe\", \"nav\", \"header\", \"footer\"],\n  \"onlyMainContent\": true,\n  \"jsonOptions\": {\n    \"prompt\": \"Identify the main content of the text (i.e., the article or newsletter body). Provide the exact text for that main content verbatim, without summarizing or rewriting any part of it. Exclude all non-essential elements such as banners, headers, footers, calls to action, ads, or purely navigational text. Format this output as markdown using appropriate '#' characters as heading levels. Exclude any promotional or sponsored content on your output. Additionally, you must identify and extract the image urls within this main content. These images must be inside the main content of the page so you must exclude small logo images, icons, avatars and other images which aren't a core part of the main content. The images you extract should at least have a width of 600 pixels (px) so it can be included on our content.\",\n    \"schema\": {\n    \"type\": \"object\",\n      \"properties\": {\n        \"content\": {\n          \"type\": \"string\",\n          \"description\": \"The exact verbatim main text content of the web page in markdown format.\"\n        },\n        \"main_content_image_urls\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\",\n            \"description\": \"An image url that appears within the main content of the web page. This image must be inside the main content of the page so you must exclude small logo images, icons, avatars and other images which aren't a core part of the main content. The image should be at least 600px in width.\"\n          },\n          \"description\": \"An array of the exact image urls that appear within the main content of the web page. Extra images such as icons and images not relevant to the main content MUST be excluded.\"\n        }\n      },\n      \"required\": [\"content\", \"main_content_image_urls\"]\n    }\n  }\n}",
+        "jsonBody": "={{$json}}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        140,
-        -80
+        -1720,
+        -680
       ],
-      "id": "59f74fd2-8982-477c-bc60-178fcb30f23c",
-      "name": "scrape_url",
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 5000,
-      "onError": "continueRegularOutput"
+      "id": "567326ef-ee80-436f-88ba-eced663f1e04",
+      "name": "Upload PDF to PDF.co1",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "K1q8u1aqz0KKzpwN",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdf.co/v1/pdf/convert/to/png",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "bright@zumbador.com_YOhLhWaPTC9iNLyMEqLxj36vozhJA8LUQy5a0QXlKjBhdZdDEA95w61lILhWIWsl"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.url }}\",\n  \"pages\": \"\",\n  \"inline\": true,\n  \"async\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1500,
+        -680
+      ],
+      "id": "fc651f12-4478-437f-a982-ad6bba6b4517",
+      "name": "PDF to PNG conversion"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2380,
+        -680
+      ],
+      "id": "df24b4b4-843f-4aa6-8e46-e2c1a652a74f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const binaryData = $input.first().binary.data;\nconst fileName = binaryData.fileName || 'document.pdf';\nconst buffer = await this.helpers.getBinaryDataBuffer(0, 'data');\nconst fileBase64 = buffer.toString('base64');\nreturn [{\n  json: {\n    file: `data:application/pdf;base64,${fileBase64}`,\n    name: fileName\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1940,
+        -680
+      ],
+      "id": "dcc07a90-17df-43c3-b51b-ebbe5ca9279c",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "xaraban",
+        "fileName": "=ban/pdf_summary/{{ $json.coverImageFileName }}",
+        "binaryPropertyName": "coverImage",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        -760,
+        -540
+      ],
+      "id": "ee6952c4-dbbd-4686-8159-1d4d31164381",
+      "name": "AWS S3",
+      "credentials": {
+        "aws": {
+          "id": "1EzY6RGV9x9KCtu0",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -240,
+        -680
+      ],
+      "id": "7cd83e8e-489d-49ad-8df5-da104e2fb4fe",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nconst fileName =\n  input.binary &&\n  input.binary.coverImage &&\n  input.binary.coverImage.fileName\n    ? input.binary.coverImage.fileName\n    : 'default.png';\n\nreturn [{\n  json: {\n    ...input.json,\n    coverImageFileName: fileName\n  },\n  binary: input.binary\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1060,
+        -540
+      ],
+      "id": "e0bac6ac-33d2-44b6-8152-1b4acfa83a5f",
+      "name": "Add File name to JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nconst key = input.json.Key || 'default.png'; // S3 node outputs the file path in \"Key\"\nreturn [{\n  json: {\n    ...input.json,\n    s3Url: `https://xaraban.s3.amazonaws.com/${key}`\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        -540
+      ],
+      "id": "95337cd3-d53f-405a-8896-e2d5cf4347d7",
+      "name": "Add s3Url to JSON"
+    },
+    {
+      "parameters": {
+        "pageId": {
+          "__rl": true,
+          "value": "https://www.notion.so/PDF-Summary-2007112e57b980d8b998e19f93512ba1",
+          "mode": "url"
+        },
+        "title": "={{ $json.aiTitle }}",
+        "blockUi": {
+          "blockValues": [
+            {
+              "type": "=paragraph",
+              "textContent": "=={{ $json.block1 }}"
+            },
+            {
+              "type": "=paragraph",
+              "textContent": "=={{ $json.block2 }}"
+            },
+            {
+              "richText": "={{ false }}",
+              "textContent": "=={{ $json.block3 }}"
+            },
+            {
+              "type": "=paragraph",
+              "richText": "={{ false }}",
+              "textContent": "={{ $json.s3Url }}"
+            },
+            {
+              "textContent": "={\n  \"type\": \"image\",\n  \"image\": {\n    \"type\": \"external\",\n    \"external\": {\n      \"url\": \"{{ $json.s3Url }}\"\n    }\n  }\n}\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        -1420
+      ],
+      "id": "f2754422-64ca-4b49-83d3-7b979c246e89",
+      "name": "Notion_good",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "pageId": {
+          "__rl": true,
+          "value": "https://www.notion.so/PDF-Summary-2007112e57b980d8b998e19f93512ba1",
+          "mode": "url"
+        },
+        "title": "={{ $json.aiTitle }}",
+        "blockUi": {
+          "blockValues": [
+            {
+              "textContent": "={{ $json.block1 }}"
+            },
+            {
+              "textContent": "={{ $json.block2 }}"
+            },
+            {
+              "textContent": "={{ $json.block3 }}"
+            },
+            {
+              "textContent": "={{ $json.s3Url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        80,
+        -700
+      ],
+      "id": "12d741bf-afad-4d89-8267-2b178c86e010",
+      "name": "Notion_good_urlonly",
+      "credentials": {
+        "notionApi": {
+          "id": "wv5ZmtxyRwkU0dXZ",
+          "name": "Notion account"
+        }
+      }
     }
   ],
   "connections": {
-    "workflow_trigger": {
+    "On form submission": {
       "main": [
         [
           {
-            "node": "scrape_url",
+            "node": "Merge",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Text Processing & Setup": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Cover Image": {
+      "main": [
+        [
+          {
+            "node": "Combine Text & Image",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add File name to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Text & Image": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Process AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process AI Output": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload PDF to PDF.co1": {
+      "main": [
+        [
+          {
+            "node": "PDF to PNG conversion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDF to PNG conversion": {
+      "main": [
+        [
+          {
+            "node": "Download Cover Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Text Processing & Setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Upload PDF to PDF.co1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AWS S3": {
+      "main": [
+        [
+          {
+            "node": "Add s3Url to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Notion_good_urlonly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add File name to JSON": {
+      "main": [
+        [
+          {
+            "node": "AWS S3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add s3Url to JSON": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
           }
         ]
       ]
@@ -77,16 +584,8 @@
   },
   "staticData": null,
   "meta": null,
-  "pinData": {
-    "workflow_trigger": [
-      {
-        "json": {
-          "url": "https://techcrunch.com/2025/04/22/ex-meta-engineer-raises-14m-for-lace-an-ai-powered-revenue-generation-software-startup/"
-        }
-      }
-    ]
-  },
-  "versionId": "838f8d38-4f29-4c8a-88ed-f8415cc13636",
+  "pinData": {},
+  "versionId": "b77c1c64-9f82-4b99-8488-f5010cbda9e5",
   "triggerCount": 0,
   "tags": []
 }
