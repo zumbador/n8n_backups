@@ -1,496 +1,72 @@
 {
-  "createdAt": "2025-06-12T23:53:29.919Z",
-  "updatedAt": "2025-06-12T23:55:43.144Z",
-  "id": "fAMFYTdbSYpp4gTd",
-  "name": "My workflow 6",
+  "createdAt": "2025-06-12T19:24:36.907Z",
+  "updatedAt": "2025-06-12T19:24:36.907Z",
+  "id": "hg1ArFmfIBakg1MF",
+  "name": "Firecrawl Scrape Url Sub-Workflow",
   "active": false,
-  "isArchived": true,
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
+        "workflowInputs": {
+          "values": [
             {
-              "id": "8d513345-6484-431f-afb7-7cf045c90f4f",
-              "name": "Done",
-              "type": "boolean",
-              "value": true
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "71b05df8-e4ed-4c90-9111-b35feb8cf446",
-      "name": "Return",
-      "type": "n8n-nodes-base.set",
-      "position": [
-        -1380,
-        780
-      ],
-      "typeVersion": 3.3
-    },
-    {
-      "parameters": {
-        "url": "={{ $json.download_url }}",
-        "options": {}
-      },
-      "id": "a2c8e021-fe61-4837-ac76-15f6447377a6",
-      "name": "Get File",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        -2700,
-        630
-      ],
-      "typeVersion": 4.2
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "version": 1,
-            "leftValue": "",
-            "caseSensitive": true,
-            "typeValidation": "strict"
-          },
-          "combinator": "and",
-          "conditions": [
-            {
-              "id": "45ce825e-9fa6-430c-8931-9aaf22c42585",
-              "operator": {
-                "type": "string",
-                "operation": "empty",
-                "singleValue": true
-              },
-              "leftValue": "={{ $json.content }}",
-              "rightValue": ""
-            },
-            {
-              "id": "9619a55f-7fb1-4f24-b1a7-7aeb82365806",
-              "operator": {
-                "type": "string",
-                "operation": "notExists",
-                "singleValue": true
-              },
-              "leftValue": "={{ $json.error }}",
-              "rightValue": ""
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "935852b1-7512-4d5d-a8ab-fbaccecbfc41",
-      "name": "If file too large",
-      "type": "n8n-nodes-base.if",
-      "position": [
-        -2920,
-        705
-      ],
-      "typeVersion": 2
-    },
-    {
-      "parameters": {},
-      "id": "fd6fd5d3-5e23-434e-96e1-445e0091b252",
-      "name": "Merge Items",
-      "type": "n8n-nodes-base.merge",
-      "position": [
-        -2480,
-        780
-      ],
-      "typeVersion": 2
-    },
-    {
-      "parameters": {
-        "jsCode": "const orderJsonKeys = (jsonObj) => {\n  const ordered = {};\n  Object.keys(jsonObj).sort().forEach(key => {\n    ordered[key] = jsonObj[key];\n  });\n  return ordered;\n}\n\n// Check if file returned with content\nif (Object.keys($input.all()[0].json).includes(\"content\")) {\n  // Decode base64 content and parse JSON\n  const origWorkflow = JSON.parse(Buffer.from($input.all()[0].json.content, 'base64').toString());\n  const n8nWorkflow = $input.all()[1].json;\n  \n  // Order JSON objects\n  const orderedOriginal = orderJsonKeys(origWorkflow);\n  const orderedActual = orderJsonKeys(n8nWorkflow);\n\n  // Determine difference\n  if (JSON.stringify(orderedOriginal) === JSON.stringify(orderedActual)) {\n    $input.all()[0].json.github_status = \"same\";\n  } else {\n    $input.all()[0].json.github_status = \"different\";\n    $input.all()[0].json.n8n_data_stringy = JSON.stringify(orderedActual, null, 2);\n  }\n  $input.all()[0].json.content_decoded = orderedOriginal;\n// No file returned / new workflow\n} else if (Object.keys($input.all()[0].json).includes(\"data\")) {\n  const origWorkflow = JSON.parse($input.all()[0].json.data);\n  const n8nWorkflow = $input.all()[1].json;\n  \n  // Order JSON objects\n  const orderedOriginal = orderJsonKeys(origWorkflow);\n  const orderedActual = orderJsonKeys(n8nWorkflow);\n\n  // Determine difference\n  if (JSON.stringify(orderedOriginal) === JSON.stringify(orderedActual)) {\n    $input.all()[0].json.github_status = \"same\";\n  } else {\n    $input.all()[0].json.github_status = \"different\";\n    $input.all()[0].json.n8n_data_stringy = JSON.stringify(orderedActual, null, 2);\n  }\n  $input.all()[0].json.content_decoded = orderedOriginal;\n\n} else {\n  // Order JSON object\n  const n8nWorkflow = $input.all()[1].json;\n  const orderedActual = orderJsonKeys(n8nWorkflow);\n  \n  // Proper formatting\n  $input.all()[0].json.github_status = \"new\";\n  $input.all()[0].json.n8n_data_stringy = JSON.stringify(orderedActual, null, 2);\n}\n\n// Return items\nreturn $input.all();"
-      },
-      "id": "b14db6b7-1e74-48a4-bbab-cedf6dce6a53",
-      "name": "isDiffOrNew",
-      "type": "n8n-nodes-base.code",
-      "position": [
-        -2260,
-        780
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "dataType": "string",
-        "value1": "={{$json.github_status}}",
-        "rules": {
-          "rules": [
-            {
-              "value2": "same"
-            },
-            {
-              "value2": "different",
-              "output": 1
-            },
-            {
-              "value2": "new",
-              "output": 2
+              "name": "url"
             }
           ]
         }
       },
-      "id": "a73d19fc-f063-4b1c-9011-41785dc7ac27",
-      "name": "Check Status",
-      "type": "n8n-nodes-base.switch",
-      "position": [
-        -2040,
-        759
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {},
-      "id": "57ff4136-c2e8-4c10-81a7-9a54c04ec88a",
-      "name": "Same file - Do nothing",
-      "type": "n8n-nodes-base.noOp",
-      "position": [
-        -1600,
-        580
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {},
-      "id": "63e388a8-15ac-45e2-8ebd-1d8c6f2b5658",
-      "name": "File is different",
-      "type": "n8n-nodes-base.noOp",
-      "position": [
-        -1820,
-        780
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {},
-      "id": "f46989fc-1ca1-45e0-84f9-98814804528f",
-      "name": "File is new",
-      "type": "n8n-nodes-base.noOp",
-      "position": [
-        -1820,
-        980
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "owner": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $('Globals').item.json.repo.owner }}"
-        },
-        "repository": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $('Globals').item.json.repo.name }}"
-        },
-        "filePath": "={{ $('Globals').item.json.repo.path }}{{$('Execute Workflow Trigger').first().json.id}}.json",
-        "fileContent": "={{$('isDiffOrNew').item.json[\"n8n_data_stringy\"]}}",
-        "commitMessage": "={{$('Execute Workflow Trigger').first().json.name}} ({{$json.github_status}})"
-      },
-      "id": "8db330d2-89ee-4e20-93f4-9eb876ac5cfe",
-      "name": "Create new file",
-      "type": "n8n-nodes-base.github",
-      "position": [
-        -1600,
-        980
-      ],
-      "webhookId": "e5e4ce8b-74a3-4b94-83ca-351edc280faf",
-      "typeVersion": 1,
-      "credentials": {
-        "githubApi": {
-          "id": "LBtQD0iKjRkQ4STc",
-          "name": "GitHub backup"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "operation": "edit",
-        "owner": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $('Globals').item.json.repo.owner }}"
-        },
-        "repository": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $('Globals').item.json.repo.name }}"
-        },
-        "filePath": "={{ $('Globals').item.json.repo.path }}{{$('Execute Workflow Trigger').first().json.id}}.json",
-        "fileContent": "={{$('isDiffOrNew').item.json[\"n8n_data_stringy\"]}}",
-        "commitMessage": "={{$('Execute Workflow Trigger').first().json.name}} ({{$json.github_status}})"
-      },
-      "id": "f027308c-d39d-4808-9eb4-121024cdd8d4",
-      "name": "Edit existing file",
-      "type": "n8n-nodes-base.github",
-      "position": [
-        -1600,
-        780
-      ],
-      "webhookId": "a57e71de-4960-4d25-a59f-1a9e2e96aff5",
-      "typeVersion": 1,
-      "credentials": {
-        "githubApi": {
-          "id": "LBtQD0iKjRkQ4STc",
-          "name": "GitHub backup"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "operation": "get",
-        "owner": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $json.repo.owner }}"
-        },
-        "repository": {
-          "__rl": true,
-          "mode": "name",
-          "value": "={{ $json.repo.name }}"
-        },
-        "filePath": "={{ $json.repo.path }}{{ $('Execute Workflow Trigger').item.json.id }}.json",
-        "asBinaryProperty": false,
-        "additionalParameters": {}
-      },
-      "id": "1a5ac1db-ebe3-41e9-83d3-2bf2172b97b7",
-      "name": "Get file data",
-      "type": "n8n-nodes-base.github",
-      "position": [
-        -3140,
-        705
-      ],
-      "webhookId": "743111c3-2c21-4658-8097-a9fe966f43d2",
-      "typeVersion": 1,
-      "alwaysOutputData": true,
-      "credentials": {
-        "githubApi": {
-          "id": "LBtQD0iKjRkQ4STc",
-          "name": "GitHub backup"
-        }
-      },
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "6cf546c5-5737-4dbd-851b-17d68e0a3780",
-              "name": "repo.owner",
-              "type": "string",
-              "value": "john-doe"
-            },
-            {
-              "id": "452efa28-2dc6-4ea3-a7a2-c35d100d0382",
-              "name": "repo.name",
-              "type": "string",
-              "value": "n8n-backup"
-            },
-            {
-              "id": "81c4dc54-86bf-4432-a23f-22c7ea831e74",
-              "name": "repo.path",
-              "type": "string",
-              "value": "workflows/"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "0651d0d3-2184-4711-81f7-bdb24d7c7f46",
-      "name": "Globals",
-      "type": "n8n-nodes-base.set",
-      "position": [
-        -3360,
-        705
-      ],
-      "typeVersion": 3.4
-    },
-    {
-      "parameters": {
-        "inputSource": "passthrough"
-      },
-      "id": "020df89a-8d66-4c6e-bc69-66c4c51352dc",
-      "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
       "position": [
-        -3580,
-        780
+        -240,
+        -80
       ],
-      "typeVersion": 1.1
+      "id": "38a346d6-497a-46ea-8d9d-cec2ad018fa1",
+      "name": "workflow_trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.url }}\",\n  \"formats\": [\"json\", \"markdown\", \"rawHtml\", \"links\"],\n  \"excludeTags\": [\"iframe\", \"nav\", \"header\", \"footer\"],\n  \"onlyMainContent\": true,\n  \"jsonOptions\": {\n    \"prompt\": \"Identify the main content of the text (i.e., the article or newsletter body). Provide the exact text for that main content verbatim, without summarizing or rewriting any part of it. Exclude all non-essential elements such as banners, headers, footers, calls to action, ads, or purely navigational text. Format this output as markdown using appropriate '#' characters as heading levels. Exclude any promotional or sponsored content on your output. Additionally, you must identify and extract the image urls within this main content. These images must be inside the main content of the page so you must exclude small logo images, icons, avatars and other images which aren't a core part of the main content. The images you extract should at least have a width of 600 pixels (px) so it can be included on our content.\",\n    \"schema\": {\n    \"type\": \"object\",\n      \"properties\": {\n        \"content\": {\n          \"type\": \"string\",\n          \"description\": \"The exact verbatim main text content of the web page in markdown format.\"\n        },\n        \"main_content_image_urls\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\",\n            \"description\": \"An image url that appears within the main content of the web page. This image must be inside the main content of the page so you must exclude small logo images, icons, avatars and other images which aren't a core part of the main content. The image should be at least 600px in width.\"\n          },\n          \"description\": \"An array of the exact image urls that appear within the main content of the web page. Extra images such as icons and images not relevant to the main content MUST be excluded.\"\n        }\n      },\n      \"required\": [\"content\", \"main_content_image_urls\"]\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        140,
+        -80
+      ],
+      "id": "59f74fd2-8982-477c-bc60-178fcb30f23c",
+      "name": "scrape_url",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
     }
   ],
   "connections": {
-    "Get File": {
+    "workflow_trigger": {
       "main": [
         [
           {
-            "node": "Merge Items",
+            "node": "scrape_url",
             "type": "main",
             "index": 0
-          }
-        ]
-      ]
-    },
-    "If file too large": {
-      "main": [
-        [
-          {
-            "node": "Get File",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Merge Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge Items": {
-      "main": [
-        [
-          {
-            "node": "isDiffOrNew",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "isDiffOrNew": {
-      "main": [
-        [
-          {
-            "node": "Check Status",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Check Status": {
-      "main": [
-        [
-          {
-            "node": "Same file - Do nothing",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "File is different",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "File is new",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Same file - Do nothing": {
-      "main": [
-        [
-          {
-            "node": "Return",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "File is different": {
-      "main": [
-        [
-          {
-            "node": "Edit existing file",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "File is new": {
-      "main": [
-        [
-          {
-            "node": "Create new file",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create new file": {
-      "main": [
-        [
-          {
-            "node": "Return",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Edit existing file": {
-      "main": [
-        [
-          {
-            "node": "Return",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get file data": {
-      "main": [
-        [
-          {
-            "node": "If file too large",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Globals": {
-      "main": [
-        [
-          {
-            "node": "Get file data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute Workflow Trigger": {
-      "main": [
-        [
-          {
-            "node": "Globals",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Merge Items",
-            "type": "main",
-            "index": 1
           }
         ]
       ]
@@ -501,8 +77,16 @@
   },
   "staticData": null,
   "meta": null,
-  "pinData": {},
-  "versionId": "b6739d64-310f-4c53-a35a-c8eb766fcfb1",
+  "pinData": {
+    "workflow_trigger": [
+      {
+        "json": {
+          "url": "https://techcrunch.com/2025/04/22/ex-meta-engineer-raises-14m-for-lace-an-ai-powered-revenue-generation-software-startup/"
+        }
+      }
+    ]
+  },
+  "versionId": "838f8d38-4f29-4c8a-88ed-f8415cc13636",
   "triggerCount": 0,
   "tags": []
 }
