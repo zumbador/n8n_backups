@@ -1,110 +1,65 @@
 {
-  "createdAt": "2025-06-07T19:54:57.977Z",
-  "updatedAt": "2025-06-11T20:20:19.573Z",
-  "id": "oz2oxAIaaYJiiTgn",
-  "name": "PDF Summary",
+  "createdAt": "2025-06-08T22:00:23.808Z",
+  "updatedAt": "2025-06-11T20:16:36.069Z",
+  "id": "buzUIdDZpC934w6c",
+  "name": "My workflow 3",
   "active": false,
   "isArchived": true,
   "nodes": [
     {
       "parameters": {
-        "formTitle": "Submit PDF",
-        "formDescription": "Submit pdf file",
-        "formFields": {
-          "values": [
-            {
-              "fieldLabel": "data",
-              "fieldType": "file"
-            }
-          ]
-        },
-        "options": {}
+        "public": true,
+        "initialMessages": "Hi there! 👋\nMy name is Xara. How can I assist you today?",
+        "options": {
+          "allowFileUploads": true
+        }
       },
-      "type": "n8n-nodes-base.formTrigger",
-      "typeVersion": 2.2,
+      "id": "db22b5fc-ed55-450e-9ee9-91e3be9f3ae8",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "position": [
-        -3240,
-        70
+        -420,
+        280
       ],
-      "id": "c0b13be6-7655-496b-ae2d-b8795bf68089",
-      "name": "On form submission",
-      "webhookId": "ed798d81-9423-4cc9-a148-04afde73ae4b"
+      "webhookId": "095537c6-b21a-4cb2-8312-13b1bf1699dc",
+      "typeVersion": 1.1
     },
     {
       "parameters": {
-        "operation": "pdf",
-        "options": {}
+        "options": {
+          "systemMessage": "=You are an AI-powered chatbot assistant for a website. Your primary function is to assist users by answering their queries and providing relevant information. You have access to a web_search tool that allows you to browse the internet for up-to-date information. Here's how you should operate:\n\n1. Website Information:\nFamiliarize yourself with this information about the website you're assisting. Use this as context for user interactions.\n\n2. Web Search Tool:\nYou have access to a web_search tool that can browse the internet. To use it, write the variable {web_search_question}. The tool will return relevant search results.\n\n3. Handling User Queries:\nWhen a user asks a question, follow these steps:\na) Analyze the query to determine if it's related to the website or requires external information.\nb) If the query is about the website, use the provided website information to answer.\nc) If external information is needed, use the web_search tool to find relevant data.\n\n4. Using web_search:\n- Use web_search for factual, current information that isn't provided in the website info.\n- Formulate clear, concise search queries.\n- If the first search doesn't yield useful results, refine your query and search again.\n- Limit searches to a maximum of three per user query to maintain efficiency.\n\n5. Using Think:\n- Using Think tool to think about something. It will not obtain new information or change the database, but just append the thought to the log. Use it when complex reasoning or some cache memory is needed.\n\n6. Formulating Responses:\n- Begin with information from the website if relevant.\n- Incorporate web search results to provide up-to-date, accurate information.\n- Summarize findings concisely and coherently.\n- If you're unsure or can't find reliable information, be honest about limitations.\n\n7. Ethical Considerations:\n- Respect user privacy. Don't ask for or store personal information.\n- Provide factual information. Avoid speculation or unverified claims.\n- If asked about controversial topics, strive for a balanced, neutral response.\n- Don't engage in or encourage illegal activities.\n\n8. Output Format:\nDo not include your thought process, web searches, or any other tags in the final output.\n\n9. Code Formatting:\n- Always use proper markdown formatting for code blocks\n- Use triple backticks (```) with language specification: ```javascript, ```python, ```json\n- Use single backticks (`) for inline code\n- Ensure proper indentation and spacing\n- Add blank lines before and after code blocks for better readability.\n -\"Always format JSON with proper indentation\"\n -\"Use triple backticks with 'json' language specification\"\n -\"Never output minified or compressed JSON\""
+        }
       },
-      "type": "n8n-nodes-base.extractFromFile",
-      "typeVersion": 1,
-      "position": [
-        -3020,
-        145
-      ],
-      "id": "b44da198-ec88-4e8e-bc8b-d2c65390925d",
-      "name": "Extract from File",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const input = $input.first();\nconst fullText = input.json.text || '';\nconst binaryData = input.binary || {};\n\n// Find the binary property key (usually 'data')\nconst binaryKey = Object.keys(binaryData)[0];\n\n// Only proceed if binaryKey exists\nif (binaryKey && binaryData[binaryKey]) {\n  // Figure out the file name\n  const fileName =\n    input.json.fileName ||\n    input.json.originalFileName ||\n    'document.pdf';\n\n  // Attach the file name to the binary property\n  binaryData[binaryKey].fileName = fileName;\n}\n\n// Process text length\nlet processedText;\nif (fullText.length <= 8000) {\n  processedText = fullText;\n} else {\n  const start = fullText.substring(0, 4000);\n  const end = fullText.substring(fullText.length - 2000);\n  const middle = fullText.substring(\n    Math.floor(fullText.length / 2) - 1000,\n    Math.floor(fullText.length / 2) + 1000\n  );\n  processedText =\n    start +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    middle +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    end;\n}\n\n// Now processedText is defined and can be used in the return\nreturn [\n  {\n    json: {\n      text: processedText,\n      needsCoverExtraction: true,\n      originalFileName: (binaryKey && binaryData[binaryKey] && binaryData[binaryKey].fileName) || 'document.pdf'\n    },\n    binary: binaryData\n  }\n];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -2580,
-        70
-      ],
-      "id": "cf54f301-3b0c-4ace-bfd3-83f68b4632f5",
-      "name": "Text Processing & Setup"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=Here is the PDF content: {{ $json.text }}\n\nPlease analyze this document and return **exactly** the following, with no extra commentary:\n\nTITLE: [Document title]\n\nYEAR: [Publication year]\n\nAUTHOR: [Author name(s)]\n\nPAGES: [Total page count]\n\nOVERVIEW (50 words):  \n[Write a 50-word overview of the document.]\n\nSUMMARY (300 words):  \n[Write a 300-word summary targeting \"White paper\" and the document title.]\n\nMETA DESCRIPTION (160 chars max):  \n[Write a meta description, no more than 160 characters.]\nDescribe your new note here.\n\nReview 1 (50 - 100 words):\n[Write a 150-word posotive review of the document.]",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 2,
-      "position": [
-        -1920,
-        -180
-      ],
-      "id": "767ec290-e18d-489d-a841-e40ee2bea9df",
+      "id": "c9a55f31-bce5-4a7f-a651-6d8238c10f0c",
       "name": "AI Agent",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const input = $input.first();\nlet text = input.json.output || '';\n\n// Extract title from the AI output\nconst titleMatch = text.match(/TITLE: (.+)/);\nconst aiTitle = titleMatch ? titleMatch[1].trim() : 'Untitled';\n\n// Split text into chunks that fit Notion's 2000 char limit\nconst chunks = [];\nlet remainingText = text;\n\nwhile (remainingText.length > 0) {\n  let chunk = remainingText.substring(0, 1900);\n\n  // If there's more text, try to break at a natural point\n  if (remainingText.length > 1900) {\n    const lastPeriod = chunk.lastIndexOf('. ');\n    const lastNewline = chunk.lastIndexOf('\\n');\n\n    if (lastPeriod > 1200) {\n      chunk = chunk.substring(0, lastPeriod + 1);\n    } else if (lastNewline > 1200) {\n      chunk = chunk.substring(0, lastNewline);\n    }\n  }\n\n  chunks.push(chunk.trim());\n  remainingText = remainingText.substring(chunk.length).trim();\n}\n\n// Return all original data plus split blocks, extracted title, and coverImageFileName\nreturn [{\n  json: {\n    ...input.json,\n    aiTitle: aiTitle,\n    block1: chunks[0] || '',\n    block2: chunks[1] || '',\n    block3: chunks[2] || '',\n    coverImageFileName: input.json.coverImageFileName // <-- Make sure this line is here!\n  },\n  binary: input.binary || {}\n}];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "@n8n/n8n-nodes-langchain.agent",
       "position": [
-        -1544,
-        -80
+        -108,
+        280
       ],
-      "id": "4acd58f5-101d-4af7-9eff-ba8c7ce15dff",
-      "name": "Process AI Output"
+      "typeVersion": 1.9
     },
     {
       "parameters": {
         "model": {
           "__rl": true,
-          "value": "claude-opus-4-20250514",
+          "value": "claude-sonnet-4-20250514",
           "mode": "list",
-          "cachedResultName": "Claude Opus 4"
+          "cachedResultName": "Claude Sonnet 4"
         },
-        "options": {}
+        "options": {
+          "maxTokensToSample": 1024,
+          "thinking": false
+        }
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
-      "typeVersion": 1.3,
-      "position": [
-        -3240,
-        -420
-      ],
-      "id": "666af65a-dbf8-49ef-b07d-6964ebeb142c",
+      "id": "518b2595-456f-4def-b6d0-db4ea78cc2df",
       "name": "Anthropic Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "position": [
+        -200,
+        500
+      ],
+      "typeVersion": 1.3,
       "credentials": {
         "anthropicApi": {
           "id": "l8nsyOPKZPhdPs1R",
@@ -114,127 +69,78 @@
     },
     {
       "parameters": {},
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
+      "id": "41a2f54a-4ad1-403b-963c-df413fe607d9",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "position": [
-        -2800,
-        70
+        -80,
+        500
       ],
-      "id": "e8c3fdef-6540-4ce2-977b-250dc79eb901",
-      "name": "Merge"
+      "typeVersion": 1.3
     },
     {
       "parameters": {
-        "mode": "combine",
-        "combineBy": "combineByPosition",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        -1324,
-        70
-      ],
-      "id": "222febca-0fb3-43a9-be61-8e3cb68a7951",
-      "name": "Merge1"
-    },
-    {
-      "parameters": {
-        "jsCode": "// FIXED JavaScript Code for \"Add File name to JSON\" node:\nconst input = $input.first();\nlet fileName = 'output.png';\n\nconst binaryKey = Object.keys(input.binary)[0];\n\nif (binaryKey && input.binary[binaryKey]) {\n  // Generate a unique filename with timestamp and random string\n  const timestamp = Date.now();\n  const randomString = Math.random().toString(36).substring(2, 8);\n  const originalFileName = input.binary[binaryKey].fileName || 'output.png';\n  const fileExtension = originalFileName.split('.').pop() || 'png';\n  \n  fileName = `cover_${timestamp}_${randomString}.${fileExtension}`;\n}\n\n// Provide the COMPLETE path with unique filename\nconst completePath = \"ban/pdf_summary/\" + fileName;\n\n// Debug logging\nconsole.log('Generated fileName:', fileName);\nconsole.log('Complete path:', completePath);\nconsole.log('Binary key found:', binaryKey);\n\nreturn [{\n  json: {\n    ...input.json,\n    completePath: completePath,\n    uniqueFileName: fileName,\n    fileMeta: {\n      originalName: input.json.originalFileName || 'unknown.pdf',\n      processedAt: new Date().toISOString()\n    },\n    // Debug info\n    debug: {\n      binaryKey: binaryKey,\n      generatedPath: completePath\n    }\n  },\n  binary: input.binary\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -2140,
-        220
-      ],
-      "id": "9447819f-4a1d-4ced-8f55-748381e373dc",
-      "name": "Add File name to JSON"
-    },
-    {
-      "parameters": {
-        "jsCode": "const input = $input.first();\n\n// Get the filename from coverImageFileName or generate a timestamp-based one\nconst fileName = input.json.coverImageFileName || `cover_${Date.now()}.png`;\nconst fullPath = `ban/pdf_summary/${fileName}`;\n\nreturn [{\n  json: {\n    ...input.json,\n    s3Url: `https://xaraban.s3.amazonaws.com/${fullPath}`\n  }\n}];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1544,
-        220
-      ],
-      "id": "f9692ce7-3fff-4665-8d3f-17445d556cd2",
-      "name": "Add s3Url to JSON"
-    },
-    {
-      "parameters": {
-        "pageId": {
-          "__rl": true,
-          "value": "https://www.notion.so/PDF-Summary-2007112e57b980d8b998e19f93512ba1",
-          "mode": "url"
-        },
-        "title": "={{ $json.aiTitle }}",
-        "blockUi": {
-          "blockValues": [
+        "toolDescription": "Use this tool to search on the web",
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "textContent": "={{ $json.block1 }}"
+              "name": "anthropic-version",
+              "value": "2023-06-01"
             },
             {
-              "textContent": "={{ $json.block2 }}"
-            },
-            {
-              "textContent": "={{ $json.block3 }}"
-            },
-            {
-              "textContent": "={{ $json.s3Url }}"
+              "name": "content-type",
+              "value": "application/jso"
             }
           ]
         },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('JSON', `{\n  \"model\": \"claude-3-7-sonnet-latest\",\n  \"max_tokens\": 1024,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{web_search_question}\"\n    }\n  ],\n  \"tools\": [\n    {\n      \"type\": \"web_search_20250305\",\n      \"name\": \"web_search\",\n      \"max_uses\": 5\n    }\n  ]\n}\n`, 'json') }}",
         "options": {}
       },
-      "type": "n8n-nodes-base.notion",
-      "typeVersion": 2.2,
+      "id": "e2e34e80-83b6-41f6-ae42-79187c790b31",
+      "name": "web_search",
+      "type": "n8n-nodes-base.httpRequestTool",
       "position": [
-        -1104,
-        70
+        160,
+        500
       ],
-      "id": "bffa565b-2f08-4615-89e5-db3be8280d2e",
-      "name": "Notion_good_urlonly",
+      "typeVersion": 4.2,
       "credentials": {
-        "notionApi": {
-          "id": "wv5ZmtxyRwkU0dXZ",
-          "name": "Notion account"
+        "anthropicApi": {
+          "id": "l8nsyOPKZPhdPs1R",
+          "name": "Anthropic account"
         }
       }
     },
     {
       "parameters": {},
-      "type": "@custom-js/n8n-nodes-pdf-toolkit.PdfToPng",
-      "typeVersion": 1,
+      "id": "bc0578ab-7644-408e-a1ff-c32b7ec98888",
+      "name": "Think",
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
       "position": [
-        -3040,
-        -420
+        40,
+        500
       ],
-      "id": "3d37a151-a9bc-4135-86d4-7ea9bad7a844",
-      "name": "Convert PDF into PNG",
-      "alwaysOutputData": false,
-      "credentials": {
-        "customJsApi": {
-          "id": "wdIdfYBJiN1MGEjP",
-          "name": "CustomJS account"
-        }
-      }
+      "typeVersion": 1
     },
     {
       "parameters": {
-        "modelName": "models/gemini-2.5-flash-preview-05-20",
+        "modelName": "models/gemini-2.5-flash-preview-04-17",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        -1832,
-        40
+        -340,
+        500
       ],
-      "id": "b4d1b7df-c7f0-48aa-9514-eb3af3e7f852",
+      "id": "b5086ce1-21f2-4e44-b0d1-f8c7bf0c941f",
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
@@ -242,110 +148,37 @@
           "name": "Google Gemini(PaLM) Api account"
         }
       }
-    },
-    {
-      "parameters": {
-        "operation": "upload",
-        "bucketName": "xaraban",
-        "fileName": "={{$json.completePath}}",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.awsS3",
-      "typeVersion": 2,
-      "position": [
-        -1842,
-        220
-      ],
-      "id": "13de62f2-0f58-4790-9f74-ca9e3408cb58",
-      "name": "AWS S3",
-      "credentials": {
-        "aws": {
-          "id": "1EzY6RGV9x9KCtu0",
-          "name": "AWS account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "Convert from PDF",
-        "url": "https://api.pdf.co/v1/pdf/convert/to/png",
-        "convertType": "toPng",
-        "advancedOptions_Image": {
-          "pages": "1"
-        }
-      },
-      "type": "n8n-nodes-pdfco.PDFco Api",
-      "typeVersion": 1,
-      "position": [
-        -2380,
-        80
-      ],
-      "id": "831ab842-1b9a-4d6f-8247-5c0f079fb3b4",
-      "name": "PDFco Api",
-      "credentials": {
-        "pdfcoApi": {
-          "id": "PAcs9bTz82LKZSjr",
-          "name": "PDF.co account"
-        }
-      }
     }
   ],
   "connections": {
-    "On form submission": {
-      "main": [
+    "Think": {
+      "ai_tool": [
         [
           {
-            "node": "Merge",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Extract from File",
-            "type": "main",
+            "node": "AI Agent",
+            "type": "ai_tool",
             "index": 0
           }
         ]
       ]
     },
-    "Extract from File": {
-      "main": [
+    "web_search": {
+      "ai_tool": [
         [
           {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Text Processing & Setup": {
-      "main": [
-        [
-          {
-            "node": "PDFco Api",
-            "type": "main",
+            "node": "AI Agent",
+            "type": "ai_tool",
             "index": 0
           }
         ]
       ]
     },
-    "AI Agent": {
-      "main": [
+    "Simple Memory": {
+      "ai_memory": [
         [
           {
-            "node": "Process AI Output",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Process AI Output": {
-      "main": [
-        [
-          {
-            "node": "Merge1",
-            "type": "main",
+            "node": "AI Agent",
+            "type": "ai_memory",
             "index": 0
           }
         ]
@@ -356,53 +189,15 @@
         []
       ]
     },
-    "Merge": {
+    "When chat message received": {
       "main": [
         [
           {
-            "node": "Text Processing & Setup",
+            "node": "AI Agent",
             "type": "main",
             "index": 0
           }
         ]
-      ]
-    },
-    "Merge1": {
-      "main": [
-        [
-          {
-            "node": "Notion_good_urlonly",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Add File name to JSON": {
-      "main": [
-        [
-          {
-            "node": "AWS S3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Add s3Url to JSON": {
-      "main": [
-        [
-          {
-            "node": "Merge1",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Convert PDF into PNG": {
-      "main": [
-        []
       ]
     },
     "Google Gemini Chat Model": {
@@ -411,33 +206,6 @@
           {
             "node": "AI Agent",
             "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AWS S3": {
-      "main": [
-        [
-          {
-            "node": "Add s3Url to JSON",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "PDFco Api": {
-      "main": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Add File name to JSON",
-            "type": "main",
             "index": 0
           }
         ]
@@ -452,7 +220,7 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "22a1a5c2-b015-4fb3-abbf-e85806fccd14",
+  "versionId": "1758f57a-5af4-4d12-9fc7-cc92ddbf39d5",
   "triggerCount": 1,
   "tags": []
 }
