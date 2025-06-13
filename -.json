@@ -1,837 +1,443 @@
 {
-  "createdAt": "2025-06-12T19:32:08.270Z",
-  "updatedAt": "2025-06-12T19:32:08.270Z",
-  "id": "zX1mjlqD4JOJSxb2",
-  "name": "twitter_reply_guy_agent",
+  "createdAt": "2025-06-07T19:54:57.977Z",
+  "updatedAt": "2025-06-11T20:20:19.573Z",
+  "id": "oz2oxAIaaYJiiTgn",
+  "name": "PDF Summary",
   "active": false,
-  "isArchived": false,
+  "isArchived": true,
   "nodes": [
     {
       "parameters": {
-        "trigger": [
-          "message"
-        ],
-        "channelId": {
-          "__rl": true,
-          "value": "C07RY6EQ6SH",
-          "mode": "id"
-        },
-        "options": {
-          "userIds": "U07CUPY83ST,U05Q3C50S0Z,U05QEE5V57A,U08F1GJG0PQ"
-        }
-      },
-      "type": "n8n-nodes-base.slackTrigger",
-      "typeVersion": 1,
-      "position": [
-        -300,
-        140
-      ],
-      "id": "7918c091-fca5-464f-be7b-6284560c8025",
-      "name": "slack_trigger",
-      "webhookId": "27416a71-648c-4ef2-b6c9-47a9aff1a695"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": false,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
+        "formTitle": "Submit PDF",
+        "formDescription": "Submit pdf file",
+        "formFields": {
+          "values": [
             {
-              "id": "423cab91-b5b5-4f52-9ba6-f05345b63f5c",
-              "leftValue": "={{ $json.attachments[0].fields.map(o => o.value) }}",
-              "rightValue": "X (Twitter)",
-              "operator": {
-                "type": "array",
-                "operation": "contains",
-                "rightType": "any"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {
-          "ignoreCase": true
-        }
-      },
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2.2,
-      "position": [
-        -80,
-        140
-      ],
-      "id": "8bf20529-4b05-4c13-903e-0d7779f0280d",
-      "name": "filter_only_twitter_source"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": false,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "932940ad-cafb-4621-b97c-ec638528942e",
-              "leftValue": "={{ $json.attachments[0].author_name }}",
-              "rightValue": "@aiden_tooley",
-              "operator": {
-                "type": "string",
-                "operation": "notContains"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {
-          "ignoreCase": true
-        }
-      },
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2.2,
-      "position": [
-        160,
-        140
-      ],
-      "id": "28f4aa3f-5765-4bfe-8896-0e50b88c7e10",
-      "name": "exclude_self_account"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=I want to read this tweet and make a decision if you think a response with a link to an AI Tools directory page that would help answer the question / ask in the provided tweet.\n\nA good tweet for us to reply to is usually in the form of a question like \"How can I use AI to do...?\", \"Are there any AI tools that can help me do...?\", and other questions of that nature.\n\nHere are some examples of types of tweets we don't want to reply to:\n- A statement instead of someone asking for a tool\n- An unrelated question or inquiry that could not be helped by us sharing a link to tools on our AI Tools directory\n- A reply to another tweet (this typical begins with an @ symbol followed by their twitter user name). You can look at the raw slack alert to find more metadata to determine if this was a reply or not.\n- A tweet that shares a link to an article or content piece on another website\n- If someone tweets the question \"How can I use AI to do my job better?\", don't write a reply. This is a common quote that people use instead of a real question we want to reply to.\n- If someone is asking something nefarious, you should NOT reply to this tweet.\n- If someone is asking for a specific tool to take action towards an individual you should NOT reply to this tweet.\n- If someone is sharing a prompt for LLMs, don't reply to that tweet.\n\n---\nTweet To Evaluate:\n\n{{ $('get_tweet_content').item.json.tweet_content }}\n",
-        "hasOutputParser": true,
-        "messages": {
-          "messageValues": [
-            {
-              "message": "You are a helpful assistant, an expert community manager, and expert social media manager, and an expert at marketing. Your job is to help grow the social media presence of our AI tool directory called \"AI Tools\" on X (formerly Twitter) by evaluating AI-related tweets you should reply to."
+              "fieldLabel": "data",
+              "fieldType": "file"
             }
           ]
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "typeVersion": 1.5,
-      "position": [
-        1860,
-        120
-      ],
-      "id": "f320e58f-1d5a-4d49-8eae-bc4be7195546",
-      "name": "evaluate_tweet",
-      "retryOnFail": true,
-      "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=I want you to write a reply to the tweet I am providing below that will help this person out by sharing a relevant link to our AI Tools directory along with a short note.\n\nYou should first pick out which category page url on AI Tools will be able to help them the most based on their question or inquiry in the initial tweet.\n\nOnce that is done, write a helpful and concise tweet that let's the original person know that they can find helpful or useful tools at the link you selected out. Include this category url link in your tweet reply message.\n\nYou should write in a style that is friendly but would not be considered excessive or over the top. Your goal is to be helpful and share a resource that helps them out.\n\nAvoid repeating information from the original tweet.\n\nKeep your note very concise (short and sweet) and use as few words as you can.\n\nIt is very important you are picking the best category on AI Tools to share in your reply in order to help this person the most. The link you share should help this person find what they are looking for and asking about.\n\nUse direct language in your tweet reply.\n\nDon't start your reply with \"check\".\n\nPrefer \"may help\" over \"could\" in your reply.\n\nShort and sweet is best for this.\n\n---\nHere are some examples we have replied to in the past to help you out when crafting a great reply tweet. Please read these:\n\n### Tweet #1\n- Initial Tweet: Is there an AI tool(or tools) you might  recommend for a novice that wants to play with creating whimsical images? Thanks much!\n- Reply Tweet: There's a bunch of cool ones on here: https://aitools.inc/categories/ai-image-generators\n\n### Tweet #2\n- Initial Tweet: is there a AI tool that can help create comic book stories based on prompts and a story line\n- Reply Tweet: several on here! https://aitools.inc/categories/ai-comic-generators\n\n### Tweet #3\n- Initial Tweet: Sir, is there an AI tool that is able to create a short video based on an image? I want to create a short commercial video but I only have some photos of the product.\n- Reply Tweet: I think some of these allow you to include images w/ your prompt: https://aitools.inc/categories/ai-text-to-video-tools\n\n### Tweet #4\n- Initial Tweet: Are there AI tools that can give you a professional design for an entire web app UI?\n- Reply Tweet: We have a really good list here! https://aitools.inc/categories/ai-design-tools\n\n---\nHere's some feedback on tweets you previously wrote that you should consider for this tweet you are writing. Please reivew this feedback and apply my suggestions when you are writing this tweet:\n\n### Feedback 1\n\n- Input Tweet: I hate video tutorials so fucking much is there an AI tool that give me text ones from a video\n- Your Output: These tools can convert videos into text formats: https://aitools.inc/categories/ai-video-to-blog-tools\n\nInstead of what you wrote, I would write this instead: \"Some of these tools may help: https://aitools.inc/categories/ai-video-to-blog-tools\"\n\n### Feedback 2\n\n- Input Tweet: Is there an AI tool that takes design instructions and produces high fidelity designs?\n- Your Output: Great design tools listed here: https://aitools.inc/categories/ai-design-tools\n\nInstead of what you wrote, I suggest you respond more like this: \"There's some great AI design tools on here: https://aitools.inc/categories/ai-design-tools\"\n\n### Feedback 3\n\n- Input Tweet: This is sick! How do you actually get the design? Are there any ai tools that help with designing that we can then port to cursor?\n- Your Output: There are several AI design tools that might help with what you need: https://aitools.inc/categories/ai-design-tools\n\nInstead of what you wrote, I suggest you respond more like this: \"There are some design tools that may help here: https://aitools.inc/categories/ai-design-tools\"\n\n### Feedback 4\n\n- Input Tweet: is there an ai tool out there where i can just talk to it and it summarizes what i say? hahahahaa like i gotta stop calling @tasonjorres and brain dump\n- Your Output: These AI meeting note takers could help with those brain dumps: https://aitools.inc/categories/ai-meeting-note-takers\n\nInstead of what you wrote, I suggest you respond more like this: \"These could help out with those brain dumps: https://aitools.inc/categories/ai-meeting-note-takers\". It is okay to exclude the exact category name in your response to keep it short.\n\n### Feedback 4\n\n- Input Tweet: are there any AI tools that timestamp youtube videos for you?\n- Your Output: You'll find some helpful tools here: https://aitools.inc/categories/ai-video-to-blog-tools\n\nInstead of what you wrote, I suggest you respond more like this: \"Some of these may be helpful: https://aitools.inc/categories/ai-video-to-blog-tools\". Since the category we are sharing isn't an exact match to what they are asking, we should with a little less certainty.\n\n---\nTweet you will be replying to:\n{{ $node['get_tweet_content'].json.tweet_content }}\n\n---\nList of category page urls on our AI Tools directory. The link you include in your tweet MUST be from this list of urls that point to a category page on our AI Tools directory:\n{{ $('get_category_content').item.json.category_content }}\n\n",
-        "hasOutputParser": true,
-        "messages": {
-          "messageValues": [
-            {
-              "message": "You are a helpful assistant, an expert community manager, an expert social media manager, and an expert at marketing. Your job is to help grow the social media presence of our AI tool directory called \"AI Tools\" on X (formerly Twitter) by writing a reply tweet that "
-            }
-          ]
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "typeVersion": 1.5,
-      "position": [
-        660,
-        860
-      ],
-      "id": "a7c21819-f11a-41a1-ad11-f4ba327f26de",
-      "name": "write_tweet",
-      "retryOnFail": true,
-      "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "8246f59e-597a-425d-adf8-60bd45dd25f9",
-              "leftValue": "={{ $('exclude_retweets').all().length }}",
-              "rightValue": 1,
-              "operator": {
-                "type": "number",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.if",
+      "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
       "position": [
-        620,
-        140
+        -3240,
+        70
       ],
-      "id": "8600f2fa-b9d1-4ee0-9679-e62e07c1e632",
-      "name": "should_evaluate"
+      "id": "c0b13be6-7655-496b-ae2d-b8795bf68089",
+      "name": "On form submission",
+      "webhookId": "ed798d81-9423-4cc9-a148-04afde73ae4b"
     },
     {
       "parameters": {
-        "resource": "reaction",
-        "channelId": {
-          "__rl": true,
-          "value": "C07RY6EQ6SH",
-          "mode": "id"
-        },
-        "timestamp": "={{ $('slack_trigger').item.json.event_ts }}",
-        "name": "x"
+        "operation": "pdf",
+        "options": {}
       },
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 2.3,
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
       "position": [
-        920,
-        380
+        -3020,
+        145
       ],
-      "id": "59c836e4-27a6-4d9a-8d2a-d6294297143d",
-      "name": "leave_skip_reaction",
-      "webhookId": "3d1dd3e9-f7d3-4cfe-9fae-b568bca25db5",
-      "onError": "continueRegularOutput"
+      "id": "b44da198-ec88-4e8e-bc8b-d2c65390925d",
+      "name": "Extract from File",
+      "alwaysOutputData": true
     },
     {
       "parameters": {
-        "schemaType": "manual",
-        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"chainOfThought\": {\n      \"type\": \"string\",\n      \"description\": \"Sequential reasoning to determine if this tweet should be replied to.\"\n    },\n    \"is_tweet_good_reply_candidate\": {\n      \"type\": \"boolean\",\n      \"description\": \"Indicator if the evaluated tweet content is a good candidate to reply to.\"\n    }\n  },\n  \"required\": [\n    \"chainOfThought\",\n    \"is_tweet_good_reply_candidate\"\n  ]\n}\n"
+        "jsCode": "const input = $input.first();\nconst fullText = input.json.text || '';\nconst binaryData = input.binary || {};\n\n// Find the binary property key (usually 'data')\nconst binaryKey = Object.keys(binaryData)[0];\n\n// Only proceed if binaryKey exists\nif (binaryKey && binaryData[binaryKey]) {\n  // Figure out the file name\n  const fileName =\n    input.json.fileName ||\n    input.json.originalFileName ||\n    'document.pdf';\n\n  // Attach the file name to the binary property\n  binaryData[binaryKey].fileName = fileName;\n}\n\n// Process text length\nlet processedText;\nif (fullText.length <= 8000) {\n  processedText = fullText;\n} else {\n  const start = fullText.substring(0, 4000);\n  const end = fullText.substring(fullText.length - 2000);\n  const middle = fullText.substring(\n    Math.floor(fullText.length / 2) - 1000,\n    Math.floor(fullText.length / 2) + 1000\n  );\n  processedText =\n    start +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    middle +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    end;\n}\n\n// Now processedText is defined and can be used in the return\nreturn [\n  {\n    json: {\n      text: processedText,\n      needsCoverExtraction: true,\n      originalFileName: (binaryKey && binaryData[binaryKey] && binaryData[binaryKey].fileName) || 'document.pdf'\n    },\n    binary: binaryData\n  }\n];\n"
       },
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.2,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        2020,
-        560
+        -2580,
+        70
       ],
-      "id": "773edb32-6228-42a6-a0ef-a6d3125af1a3",
-      "name": "evaluate_tweet_output_parser"
+      "id": "cf54f301-3b0c-4ace-bfd3-83f68b4632f5",
+      "name": "Text Processing & Setup"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the PDF content: {{ $json.text }}\n\nPlease analyze this document and return **exactly** the following, with no extra commentary:\n\nTITLE: [Document title]\n\nYEAR: [Publication year]\n\nAUTHOR: [Author name(s)]\n\nPAGES: [Total page count]\n\nOVERVIEW (50 words):  \n[Write a 50-word overview of the document.]\n\nSUMMARY (300 words):  \n[Write a 300-word summary targeting \"White paper\" and the document title.]\n\nMETA DESCRIPTION (160 chars max):  \n[Write a meta description, no more than 160 characters.]\nDescribe your new note here.\n\nReview 1 (50 - 100 words):\n[Write a 150-word posotive review of the document.]",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -1920,
+        -180
+      ],
+      "id": "767ec290-e18d-489d-a841-e40ee2bea9df",
+      "name": "AI Agent",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nlet text = input.json.output || '';\n\n// Extract title from the AI output\nconst titleMatch = text.match(/TITLE: (.+)/);\nconst aiTitle = titleMatch ? titleMatch[1].trim() : 'Untitled';\n\n// Split text into chunks that fit Notion's 2000 char limit\nconst chunks = [];\nlet remainingText = text;\n\nwhile (remainingText.length > 0) {\n  let chunk = remainingText.substring(0, 1900);\n\n  // If there's more text, try to break at a natural point\n  if (remainingText.length > 1900) {\n    const lastPeriod = chunk.lastIndexOf('. ');\n    const lastNewline = chunk.lastIndexOf('\\n');\n\n    if (lastPeriod > 1200) {\n      chunk = chunk.substring(0, lastPeriod + 1);\n    } else if (lastNewline > 1200) {\n      chunk = chunk.substring(0, lastNewline);\n    }\n  }\n\n  chunks.push(chunk.trim());\n  remainingText = remainingText.substring(chunk.length).trim();\n}\n\n// Return all original data plus split blocks, extracted title, and coverImageFileName\nreturn [{\n  json: {\n    ...input.json,\n    aiTitle: aiTitle,\n    block1: chunks[0] || '',\n    block2: chunks[1] || '',\n    block3: chunks[2] || '',\n    coverImageFileName: input.json.coverImageFileName // <-- Make sure this line is here!\n  },\n  binary: input.binary || {}\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1544,
+        -80
+      ],
+      "id": "4acd58f5-101d-4af7-9eff-ba8c7ce15dff",
+      "name": "Process AI Output"
     },
     {
       "parameters": {
         "model": {
           "__rl": true,
+          "value": "claude-opus-4-20250514",
           "mode": "list",
-          "value": "gpt-4o-mini"
+          "cachedResultName": "Claude Opus 4"
         },
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.2,
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
       "position": [
-        1440,
-        560
+        -3240,
+        -420
       ],
-      "id": "5672a562-c868-44c8-93c4-429b45bc442e",
-      "name": "gpt-4o-mini"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "1c8fe2cd-da05-4f6f-8de8-bfcdaebd8b45",
-              "name": "tweet_content",
-              "value": "={{ $('fetch_tweet_content').item.json.text }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        1560,
-        120
-      ],
-      "id": "dc27bb52-24cc-43ea-8448-45c3c9429b6e",
-      "name": "get_tweet_content"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "6684bc25-d89e-4a22-954a-4c9c3aa5ae47",
-              "leftValue": "={{ $json.output.is_tweet_good_reply_candidate }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -320,
-        1040
-      ],
-      "id": "e8ef30f5-b65b-4164-a997-a77c5905f0fb",
-      "name": "is_good_candidate"
-    },
-    {
-      "parameters": {
-        "resource": "reaction",
-        "channelId": {
-          "__rl": true,
-          "value": "C07RY6EQ6SH",
-          "mode": "id"
-        },
-        "timestamp": "={{ $('slack_trigger').last().json.event_ts }}",
-        "name": "x"
-      },
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 2.3,
-      "position": [
-        340,
-        1160
-      ],
-      "id": "7f883595-0ded-4540-9338-f09a38927be2",
-      "name": "leave_bad_candidate_reaction",
-      "webhookId": "3d1dd3e9-f7d3-4cfe-9fae-b568bca25db5",
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "select": "channel",
-        "channelId": {
-          "__rl": true,
-          "value": "C07RY6EQ6SH",
-          "mode": "id"
-        },
-        "text": "=I don't think this is a good Tweet for me to reply to.\n\n*Reason:*\n{{ $('evaluate_tweet').item.json.output.chainOfThought }}\n",
-        "otherOptions": {
-          "thread_ts": {
-            "replyValues": {
-              "thread_ts": "={{ $('slack_trigger').last().json.event_ts }}"
-            }
-          }
+      "id": "666af65a-dbf8-49ef-b07d-6964ebeb142c",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "l8nsyOPKZPhdPs1R",
+          "name": "Anthropic account"
         }
-      },
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 2.3,
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
       "position": [
-        80,
-        1160
+        -2800,
+        70
       ],
-      "id": "6b0ca9ea-d435-44f7-b25c-a1d26923ec7a",
-      "name": "share_bad_tweet_candidate_msg",
-      "webhookId": "a195152d-c866-486c-a074-500d37dece2f"
+      "id": "e8c3fdef-6540-4ce2-977b-250dc79eb901",
+      "name": "Merge"
     },
     {
       "parameters": {
-        "schemaType": "manual",
-        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"chainOfThought\": {\n      \"type\": \"string\",\n      \"description\": \"Sequential reasoning to make a decision on the most helpful page to share from AI Tools and how you decided to write your helpful note in the tweet reply.\"\n    },\n    \"tweet_content\": {\n      \"type\": \"string\",\n      \"description\": \"The final tweet content that will be used as a reply on Twitter. This MUST include a url provided from the AI tools website that will help the user.\"\n    }\n  },\n  \"required\": [\n    \"chainOfThought\",\n    \"tweet_content\"\n  ]\n}\n"
-      },
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.2,
-      "position": [
-        860,
-        1060
-      ],
-      "id": "5057d242-f32f-422c-99a0-52dd4abac17c",
-      "name": "write_tweet_output_parser"
-    },
-    {
-      "parameters": {
-        "select": "channel",
-        "channelId": {
-          "__rl": true,
-          "value": "C07RY6EQ6SH",
-          "mode": "id"
-        },
-        "text": "=I went forward replying with this Tweet:\n```\n{{ $('write_tweet').item.json.output.tweet_content }}\n```\n\n*Reasoning:*\n{{ $('write_tweet').item.json.output.chainOfThought }}\n",
-        "otherOptions": {
-          "thread_ts": {
-            "replyValues": {
-              "thread_ts": "={{ $('slack_trigger').last().json.event_ts }}"
-            }
-          }
-        }
-      },
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 2.3,
-      "position": [
-        1660,
-        860
-      ],
-      "id": "e7dd1d31-1895-464b-aa42-cc0e0ad7065a",
-      "name": "share_tweet_content",
-      "webhookId": "a195152d-c866-486c-a074-500d37dece2f"
-    },
-    {
-      "parameters": {
-        "resource": "reaction",
-        "channelId": {
-          "__rl": true,
-          "value": "C07RY6EQ6SH",
-          "mode": "id"
-        },
-        "timestamp": "={{ $('slack_trigger').last().json.event_ts }}",
-        "name": "white_check_mark"
-      },
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 2.3,
-      "position": [
-        1960,
-        860
-      ],
-      "id": "4506a892-c862-4e50-905e-c89064fde40c",
-      "name": "leave_check_reaction",
-      "webhookId": "3d1dd3e9-f7d3-4cfe-9fae-b568bca25db5",
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": false,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "a8a140f5-ae97-4476-b4de-fac4d3f30767",
-              "leftValue": "={{ $json.attachments[0].text }}",
-              "rightValue": "RT",
-              "operator": {
-                "type": "string",
-                "operation": "contains"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {
-          "ignoreCase": true
-        }
-      },
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2.2,
-      "position": [
-        400,
-        140
-      ],
-      "id": "01f24d9a-c340-4ce4-ba15-b195b98dd760",
-      "name": "exclude_retweets"
-    },
-    {
-      "parameters": {
-        "url": "=https://cdn.syndication.twimg.com/tweet-result?id={{ $('extract_tweet_id').item.json.output.tweet_id }}&token=utxo",
+        "mode": "combine",
+        "combineBy": "combineByPosition",
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
       "position": [
-        1320,
-        120
+        -1324,
+        70
       ],
-      "id": "bfb8d355-bd04-41e2-93b1-5af6b93c23da",
-      "name": "fetch_tweet_content"
+      "id": "222febca-0fb3-43a9-be61-8e3cb68a7951",
+      "name": "Merge1"
     },
     {
       "parameters": {
-        "text": "=Help me extract the tweet id from the \"Open on web\" url included in this json payload that I received from a slack message webhook.\n\nHere is the slack message content to extract his information from:\n{{ JSON.stringify($('slack_trigger').first().json, null, 2) }}",
-        "attributes": {
-          "attributes": [
-            {
-              "name": "tweet_id",
-              "description": "The tweet id to extract from slack webhook json payload. This id can be extracted from the 'Open on web' link in the included json payload.",
-              "required": true
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
-      "typeVersion": 1,
-      "position": [
-        920,
-        120
-      ],
-      "id": "cfb5133a-f1c8-481e-a0e0-7fd5fe7b3001",
-      "name": "extract_tweet_id",
-      "retryOnFail": true,
-      "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "url": "http://api.aitools.inc/categories",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        80,
-        860
-      ],
-      "id": "1a0aedf2-1a62-4019-8d11-fadc4523f2c4",
-      "name": "fetch_categories"
-    },
-    {
-      "parameters": {
-        "jsCode": "let category_content = $input.all().map(o => {\n  let result = \"\";\n\n  result += `Title: ${o.json.title}\\n`;\n  result += `Description: ${o.json.meta_description}\\n`;\n  result += `Url: https://aitools.inc/categories/${o.json.slug}`;\n\n  return result;\n}).join(\"\\n\\n\");\n\nreturn { category_content };"
+        "jsCode": "// FIXED JavaScript Code for \"Add File name to JSON\" node:\nconst input = $input.first();\nlet fileName = 'output.png';\n\nconst binaryKey = Object.keys(input.binary)[0];\n\nif (binaryKey && input.binary[binaryKey]) {\n  // Generate a unique filename with timestamp and random string\n  const timestamp = Date.now();\n  const randomString = Math.random().toString(36).substring(2, 8);\n  const originalFileName = input.binary[binaryKey].fileName || 'output.png';\n  const fileExtension = originalFileName.split('.').pop() || 'png';\n  \n  fileName = `cover_${timestamp}_${randomString}.${fileExtension}`;\n}\n\n// Provide the COMPLETE path with unique filename\nconst completePath = \"ban/pdf_summary/\" + fileName;\n\n// Debug logging\nconsole.log('Generated fileName:', fileName);\nconsole.log('Complete path:', completePath);\nconsole.log('Binary key found:', binaryKey);\n\nreturn [{\n  json: {\n    ...input.json,\n    completePath: completePath,\n    uniqueFileName: fileName,\n    fileMeta: {\n      originalName: input.json.originalFileName || 'unknown.pdf',\n      processedAt: new Date().toISOString()\n    },\n    // Debug info\n    debug: {\n      binaryKey: binaryKey,\n      generatedPath: completePath\n    }\n  },\n  binary: input.binary\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        340,
-        860
+        -2140,
+        220
       ],
-      "id": "db539da9-1ee1-416f-ae82-981963ddb723",
-      "name": "get_category_content"
+      "id": "9447819f-4a1d-4ced-8f55-748381e373dc",
+      "name": "Add File name to JSON"
     },
     {
       "parameters": {
-        "text": "={{ $('write_tweet').item.json.output.tweet_content }}",
-        "additionalFields": {
-          "inReplyToStatusId": {
-            "__rl": true,
-            "value": "={{ $('extract_tweet_id').item.json.output.tweet_id }}",
-            "mode": "id"
-          }
-        }
+        "jsCode": "const input = $input.first();\n\n// Get the filename from coverImageFileName or generate a timestamp-based one\nconst fileName = input.json.coverImageFileName || `cover_${Date.now()}.png`;\nconst fullPath = `ban/pdf_summary/${fileName}`;\n\nreturn [{\n  json: {\n    ...input.json,\n    s3Url: `https://xaraban.s3.amazonaws.com/${fullPath}`\n  }\n}];\n"
       },
-      "type": "n8n-nodes-base.twitter",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1360,
-        860
+        -1544,
+        220
       ],
-      "id": "d82bfe9d-06d7-420e-93c4-bea9faf457e4",
-      "name": "post_reply_tweet"
+      "id": "f9692ce7-3fff-4665-8d3f-17445d556cd2",
+      "name": "Add s3Url to JSON"
     },
     {
       "parameters": {
-        "amount": 65
-      },
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        1080,
-        860
-      ],
-      "id": "31fc511a-c7c7-4415-b65c-53476d871a24",
-      "name": "delay",
-      "webhookId": "a96b123e-027c-4c3d-9fdd-3ffc61ba7cb1"
-    },
-    {
-      "parameters": {
-        "model": "claude-3-5-sonnet-20241022",
+        "pageId": {
+          "__rl": true,
+          "value": "https://www.notion.so/PDF-Summary-2007112e57b980d8b998e19f93512ba1",
+          "mode": "url"
+        },
+        "title": "={{ $json.aiTitle }}",
+        "blockUi": {
+          "blockValues": [
+            {
+              "textContent": "={{ $json.block1 }}"
+            },
+            {
+              "textContent": "={{ $json.block2 }}"
+            },
+            {
+              "textContent": "={{ $json.block3 }}"
+            },
+            {
+              "textContent": "={{ $json.s3Url }}"
+            }
+          ]
+        },
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
-      "typeVersion": 1.2,
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
       "position": [
-        640,
-        1060
+        -1104,
+        70
       ],
-      "id": "dc8741dd-8a00-4dbf-8c64-edd336d9b75a",
-      "name": "claude-3.5-sonnet"
+      "id": "bffa565b-2f08-4615-89e5-db3be8280d2e",
+      "name": "Notion_good_urlonly",
+      "credentials": {
+        "notionApi": {
+          "id": "wv5ZmtxyRwkU0dXZ",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@custom-js/n8n-nodes-pdf-toolkit.PdfToPng",
+      "typeVersion": 1,
+      "position": [
+        -3040,
+        -420
+      ],
+      "id": "3d37a151-a9bc-4135-86d4-7ea9bad7a844",
+      "name": "Convert PDF into PNG",
+      "alwaysOutputData": false,
+      "credentials": {
+        "customJsApi": {
+          "id": "wdIdfYBJiN1MGEjP",
+          "name": "CustomJS account"
+        }
+      }
     },
     {
       "parameters": {
-        "content": "## 1. Evaluate Tweet\n",
-        "height": 640,
-        "width": 2540
+        "modelName": "models/gemini-2.5-flash-preview-05-20",
+        "options": {}
       },
-      "type": "n8n-nodes-base.stickyNote",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
       "position": [
-        -340,
+        -1832,
+        40
+      ],
+      "id": "b4d1b7df-c7f0-48aa-9514-eb3af3e7f852",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "98JqTQmfb8tBNsCz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "xaraban",
+        "fileName": "={{$json.completePath}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        -1842,
+        220
+      ],
+      "id": "13de62f2-0f58-4790-9f74-ca9e3408cb58",
+      "name": "AWS S3",
+      "credentials": {
+        "aws": {
+          "id": "1EzY6RGV9x9KCtu0",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "Convert from PDF",
+        "url": "https://api.pdf.co/v1/pdf/convert/to/png",
+        "convertType": "toPng",
+        "advancedOptions_Image": {
+          "pages": "1"
+        }
+      },
+      "type": "n8n-nodes-pdfco.PDFco Api",
+      "typeVersion": 1,
+      "position": [
+        -2380,
         80
       ],
-      "typeVersion": 1,
-      "id": "bd3659cf-9676-463a-827a-03ebeee29538",
-      "name": "Sticky Note"
-    },
-    {
-      "parameters": {
-        "content": "## 2. Post Reply\n\n",
-        "height": 640,
-        "width": 2540,
-        "color": 4
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -340,
-        740
-      ],
-      "typeVersion": 1,
-      "id": "a9e20423-ec64-4127-ae78-33e6357ff9f1",
-      "name": "Sticky Note1"
+      "id": "831ab842-1b9a-4d6f-8247-5c0f079fb3b4",
+      "name": "PDFco Api",
+      "credentials": {
+        "pdfcoApi": {
+          "id": "PAcs9bTz82LKZSjr",
+          "name": "PDF.co account"
+        }
+      }
     }
   ],
   "connections": {
-    "slack_trigger": {
+    "On form submission": {
       "main": [
         [
           {
-            "node": "filter_only_twitter_source",
+            "node": "Merge",
             "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "filter_only_twitter_source": {
-      "main": [
-        [
-          {
-            "node": "exclude_self_account",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "exclude_self_account": {
-      "main": [
-        [
-          {
-            "node": "exclude_retweets",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "evaluate_tweet": {
-      "main": [
-        [
-          {
-            "node": "is_good_candidate",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "should_evaluate": {
-      "main": [
-        [
-          {
-            "node": "extract_tweet_id",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "leave_skip_reaction",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "evaluate_tweet_output_parser": {
-      "ai_outputParser": [
-        [
-          {
-            "node": "evaluate_tweet",
-            "type": "ai_outputParser",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "gpt-4o-mini": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "evaluate_tweet",
-            "type": "ai_languageModel",
             "index": 0
           },
           {
-            "node": "extract_tweet_id",
-            "type": "ai_languageModel",
+            "node": "Extract from File",
+            "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "get_tweet_content": {
+    "Extract from File": {
       "main": [
         [
           {
-            "node": "evaluate_tweet",
+            "node": "Merge",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
     },
-    "is_good_candidate": {
+    "Text Processing & Setup": {
       "main": [
         [
           {
-            "node": "fetch_categories",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "share_bad_tweet_candidate_msg",
+            "node": "PDFco Api",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "share_bad_tweet_candidate_msg": {
+    "AI Agent": {
       "main": [
         [
           {
-            "node": "leave_bad_candidate_reaction",
+            "node": "Process AI Output",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "write_tweet": {
+    "Process AI Output": {
       "main": [
         [
           {
-            "node": "delay",
+            "node": "Merge1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "write_tweet_output_parser": {
-      "ai_outputParser": [
-        [
-          {
-            "node": "write_tweet",
-            "type": "ai_outputParser",
-            "index": 0
-          }
-        ]
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        []
       ]
     },
-    "share_tweet_content": {
+    "Merge": {
       "main": [
         [
           {
-            "node": "leave_check_reaction",
+            "node": "Text Processing & Setup",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "exclude_retweets": {
+    "Merge1": {
       "main": [
         [
           {
-            "node": "should_evaluate",
+            "node": "Notion_good_urlonly",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "fetch_tweet_content": {
+    "Add File name to JSON": {
       "main": [
         [
           {
-            "node": "get_tweet_content",
+            "node": "AWS S3",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "extract_tweet_id": {
+    "Add s3Url to JSON": {
       "main": [
         [
           {
-            "node": "fetch_tweet_content",
+            "node": "Merge1",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
     },
-    "fetch_categories": {
+    "Convert PDF into PNG": {
       "main": [
-        [
-          {
-            "node": "get_category_content",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
-    "get_category_content": {
-      "main": [
-        [
-          {
-            "node": "write_tweet",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "post_reply_tweet": {
-      "main": [
-        [
-          {
-            "node": "share_tweet_content",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "delay": {
-      "main": [
-        [
-          {
-            "node": "post_reply_tweet",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "claude-3.5-sonnet": {
+    "Google Gemini Chat Model": {
       "ai_languageModel": [
         [
           {
-            "node": "write_tweet",
+            "node": "AI Agent",
             "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AWS S3": {
+      "main": [
+        [
+          {
+            "node": "Add s3Url to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDFco Api": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add File name to JSON",
+            "type": "main",
             "index": 0
           }
         ]
@@ -842,83 +448,11 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
-  "pinData": {
-    "slack_trigger": [
-      {
-        "json": {
-          "subtype": "bot_message",
-          "text": "*1* new mention for the alert *AI Tools*",
-          "attachments": [
-            {
-              "id": 1,
-              "color": "7ED321",
-              "fallback": "RT <https://twitter.com/hackSultan|@hackSultan>: 109 companies  (Hiring  2 -5 interns on average) and over 4000+ potential interns.How do I use AI to accurately pair interns to the right company based off skill set, requirements and location?\n<http://web.mention.com/#alert/2626255/mentions/145212540259|Open in Mention> - <https://twitter.com/egcarson_/status/1926932393660756370|Open on web> - <http://web.mention.com/#alert/2626255/edit/settings|Settings>",
-              "text": "RT <https://twitter.com/hackSultan|@hackSultan>: 109 companies  (Hiring  2 -5 interns on average) and over 4000+ potential interns.How do I use AI to accurately pair interns to the right company based off skill set, requirements and location?\n<http://web.mention.com/#alert/2626255/mentions/145212540259|Open in Mention> - <https://twitter.com/egcarson_/status/1926932393660756370|Open on web> - <http://web.mention.com/#alert/2626255/edit/settings|Settings>",
-              "author_name": "EG Carson  ‍  (@egcarson_)",
-              "author_link": "https://twitter.com/egcarson_",
-              "author_icon": "https://pbs.twimg.com/profile_images/1668901911104221187/Jy9zCnTG_normal.jpg",
-              "fields": [
-                {
-                  "value": "X (Twitter)",
-                  "title": "Source",
-                  "short": true
-                },
-                {
-                  "value": "12",
-                  "title": "Influence",
-                  "short": true
-                }
-              ],
-              "mrkdwn_in": [
-                "fields",
-                "pretext",
-                "text"
-              ]
-            }
-          ],
-          "type": "message",
-          "ts": "1748251466.728959",
-          "bot_id": "B07STMFJADP",
-          "blocks": [
-            {
-              "type": "rich_text",
-              "block_id": "YGeaD",
-              "elements": [
-                {
-                  "type": "rich_text_section",
-                  "elements": [
-                    {
-                      "type": "text",
-                      "text": "1",
-                      "style": {
-                        "bold": true
-                      }
-                    },
-                    {
-                      "type": "text",
-                      "text": " new mention for the alert "
-                    },
-                    {
-                      "type": "text",
-                      "text": "AI Tools",
-                      "style": {
-                        "bold": true
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ],
-          "channel": "C07RY6EQ6SH",
-          "event_ts": "1748251466.728959",
-          "channel_type": "channel"
-        }
-      }
-    ]
+  "meta": {
+    "templateCredsSetupCompleted": true
   },
-  "versionId": "4f5065c5-f199-4783-aa7e-40f9bde8f260",
-  "triggerCount": 0,
+  "pinData": {},
+  "versionId": "22a1a5c2-b015-4fb3-abbf-e85806fccd14",
+  "triggerCount": 1,
   "tags": []
 }
