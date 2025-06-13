@@ -1,579 +1,507 @@
 {
-  "createdAt": "2025-06-05T22:59:24.209Z",
-  "updatedAt": "2025-06-08T04:27:06.281Z",
-  "id": "Q6jitHjFMTl2xpq6",
-  "name": "PDF Summary 1",
+  "createdAt": "2025-06-12T15:00:51.725Z",
+  "updatedAt": "2025-06-12T15:03:40.578Z",
+  "id": "0yMtmGcVMHrdIZdf",
+  "name": "My workflow 5",
   "active": false,
   "isArchived": true,
   "nodes": [
     {
       "parameters": {
-        "formTitle": "Submit PDF",
-        "formDescription": "Submit pdf file",
-        "formFields": {
-          "values": [
+        "rule": {
+          "interval": [
             {
-              "fieldLabel": "data",
-              "fieldType": "file"
-            }
+              "field": "minutes"
+            },
+            {}
           ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.formTrigger",
-      "typeVersion": 2.2,
-      "position": [
-        -3400,
-        780
-      ],
-      "id": "1311badc-70c3-4ea2-be46-d40a29623a92",
-      "name": "On form submission",
-      "webhookId": "f766ed71-52de-4747-bf1e-2020cbe40928"
-    },
-    {
-      "parameters": {
-        "operation": "pdf",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.extractFromFile",
-      "typeVersion": 1,
-      "position": [
-        -3180,
-        860
-      ],
-      "id": "f81f5801-3488-4d7f-bc46-297ee344ed20",
-      "name": "Extract from File",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const input = $input.first();\nconst fullText = input.json.text || '';\nconst binaryData = input.binary || {};\n\n// Find the binary property key (usually 'data')\nconst binaryKey = Object.keys(binaryData)[0];\n\n// Only proceed if binaryKey exists\nif (binaryKey && binaryData[binaryKey]) {\n  // Figure out the file name\n  const fileName =\n    input.json.fileName ||\n    input.json.originalFileName ||\n    'document.pdf';\n\n  // Attach the file name to the binary property\n  binaryData[binaryKey].fileName = fileName;\n}\n\n// Process text length\nlet processedText;\nif (fullText.length <= 8000) {\n  processedText = fullText;\n} else {\n  const start = fullText.substring(0, 4000);\n  const end = fullText.substring(fullText.length - 2000);\n  const middle = fullText.substring(\n    Math.floor(fullText.length / 2) - 1000,\n    Math.floor(fullText.length / 2) + 1000\n  );\n  processedText =\n    start +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    middle +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    end;\n}\n\n// Now processedText is defined and can be used in the return\nreturn [\n  {\n    json: {\n      text: processedText,\n      needsCoverExtraction: true,\n      originalFileName: (binaryKey && binaryData[binaryKey] && binaryData[binaryKey].fileName) || 'document.pdf'\n    },\n    binary: binaryData\n  }\n];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -2740,
-        780
-      ],
-      "id": "01dd1a31-52c3-4620-b180-ef3a9f9c9c5c",
-      "name": "Text Processing & Setup"
-    },
-    {
-      "parameters": {
-        "url": "={{ $json.urls[0] }}",
-        "options": {
-          "response": {
-            "response": {
-              "neverError": true,
-              "responseFormat": "file",
-              "outputPropertyName": "coverImage"
-            }
-          }
         }
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "id": "ca645038-3992-4902-ad57-6dcd832679c6",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
       "position": [
-        -1860,
-        780
+        -560,
+        300
       ],
-      "id": "16c56d04-55d4-45e7-8eb6-6917364f1bd2",
-      "name": "Download Cover Image"
+      "typeVersion": 1.1
     },
     {
       "parameters": {
-        "jsCode": "// Get the original text data from the Check Cover Extraction node\nconst originalData = $input.first().json;\nconst imageData = $input.last().binary?.coverImage;\n\nreturn [{\n  json: {\n    text: originalData.text,\n    hasCoverImage: !!imageData,\n    coverImageName: imageData ? 'cover-page.png' : null\n  },\n  binary: imageData ? {\n    coverImage: imageData\n  } : {}\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1640,
-        620
-      ],
-      "id": "8759933e-d11e-4e9f-bbe4-3d478b44a9d2",
-      "name": "Combine Text & Image"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=Here is the PDF content: {{ $json.text }}\n\nPlease analyze this document and return **exactly** the following, with no extra commentary:\n\nTITLE: [Document title]\n\nYEAR: [Publication year]\n\nAUTHOR: [Author name(s)]\n\nPAGES: [Total page count]\n\nOVERVIEW (50 words):  \n[Write a 50-word overview of the document.]\n\nSUMMARY (300 words):  \n[Write a 300-word summary targeting \"White paper\" and the document title.]\n\nMETA DESCRIPTION (160 chars max):  \n[Write a meta description, no more than 160 characters.]\nDescribe your new note here.\n\nReview 1 (50 - 100 words):\n[Write a 150-word posotive review of the document.]",
+        "operation": "subtractFromDate",
+        "magnitude": "={{ $now }}",
+        "duration": 30,
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 2,
+      "id": "d38630dc-d3b5-44c0-af8e-39651b83ad4c",
+      "name": "PURGE DAYS",
+      "type": "n8n-nodes-base.dateTime",
       "position": [
-        -1420,
+        -160,
+        580
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "path": "={{ $json.pathDisplay }}"
+      },
+      "id": "c84c13a1-dec4-4261-a121-1f50e0d75a77",
+      "name": "DELETE OLD BACKUPS",
+      "type": "n8n-nodes-base.dropbox",
+      "position": [
+        520,
+        580
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "dropboxApi": {
+          "id": "7S85Xl3wT16hm4L2",
+          "name": "Dropbox account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "MOVE CURRENT BACKUPS TO OLD FOLDER",
+        "height": 223.80675203725258,
+        "width": 932.4394074276975
+      },
+      "id": "8a0056d0-33ff-4eb4-954c-e2ca489e0b5d",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -200,
+        60
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "BACKUP ALL CURRENT WORKFLOWS",
+        "height": 185.32013969732247,
+        "width": 931.4765002625034
+      },
+      "id": "0410bb36-8f7b-4f83-af1a-a786b42bf698",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -200,
+        320
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "PURGE BACKUPS OLDER THEN 30 DAYS\n",
+        "height": 203.55064027939466,
+        "width": 932.4394074276973
+      },
+      "id": "d6acef71-bf69-4f18-89b3-97d784742b65",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -240,
         520
       ],
-      "id": "a1c35ffd-7bee-42d4-a617-b7f957cf9c8f",
-      "name": "AI Agent",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "mode": "jsonToBinary",
+        "options": {
+          "fileName": "={{ $('HTTP Request').item.json.name }}"
+        }
+      },
+      "id": "eaa58950-bcec-41a0-aa44-98933ae64c23",
+      "name": "MAKE JSON FILES",
+      "type": "n8n-nodes-base.moveBinaryData",
+      "position": [
+        340,
+        340
+      ],
+      "notesInFlow": true,
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "path": "={{ $('DESTINATION FOLDER').last().json.folder }}{{ $('HTTP Request').item.json.name }}.json",
+        "binaryData": true
+      },
+      "id": "0afeb076-8c21-4200-b844-368060d616cf",
+      "name": "UPLOAD WORKFLOWS",
+      "type": "n8n-nodes-base.dropbox",
+      "position": [
+        560,
+        340
+      ],
+      "notesInFlow": true,
+      "typeVersion": 1,
+      "credentials": {
+        "dropboxApi": {
+          "id": "7S85Xl3wT16hm4L2",
+          "name": "Dropbox account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "folder",
+              "stringValue": "/n8n_backups/"
+            }
+          ]
+        },
+        "include": "none",
+        "options": {}
+      },
+      "id": "5e5893b3-8ce6-4fb2-88d0-ff16e5c996e6",
+      "name": "DESTINATION FOLDER",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -340,
+        300
+      ],
+      "notesInFlow": true,
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "output": "input2"
+      },
+      "id": "99a4e7a1-8a59-40d1-acbe-2c59569df3d9",
+      "name": "WAIT FOR MOVE TO FINISH",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        -120,
+        340
+      ],
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "operation": "list",
+        "path": "={{ $('DESTINATION FOLDER').last().json.folder }}",
+        "limit": 250,
+        "filters": {}
+      },
+      "id": "203ddd7b-132d-4111-8916-4a089eca99e4",
+      "name": "GET CURRENT BACKUPS",
+      "type": "n8n-nodes-base.dropbox",
+      "position": [
+        120,
+        140
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "dropboxApi": {
+          "id": "7S85Xl3wT16hm4L2",
+          "name": "Dropbox account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "a13e9fd6-ef31-4e23-bde6-955ffab5849b",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              },
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "folder"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5ed3599e-ac5e-4997-8a6d-fd067e3cdd92",
+      "name": "IGNORE FOLDERS",
+      "type": "n8n-nodes-base.filter",
+      "position": [
+        340,
+        140
+      ],
+      "typeVersion": 2,
       "alwaysOutputData": true
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first();\nlet text = input.json.output || '';\n\n// Extract title from the AI output\nconst titleMatch = text.match(/TITLE: (.+)/);\nconst aiTitle = titleMatch ? titleMatch[1].trim() : 'Untitled';\n\n// Split text into chunks that fit Notion's 2000 char limit\nconst chunks = [];\nlet remainingText = text;\n\nwhile (remainingText.length > 0) {\n  let chunk = remainingText.substring(0, 1900);\n\n  // If there's more text, try to break at a natural point\n  if (remainingText.length > 1900) {\n    const lastPeriod = chunk.lastIndexOf('. ');\n    const lastNewline = chunk.lastIndexOf('\\n');\n\n    if (lastPeriod > 1200) {\n      chunk = chunk.substring(0, lastPeriod + 1);\n    } else if (lastNewline > 1200) {\n      chunk = chunk.substring(0, lastNewline);\n    }\n  }\n\n  chunks.push(chunk.trim());\n  remainingText = remainingText.substring(chunk.length).trim();\n}\n\n// Return all original data plus split blocks, extracted title, and coverImageFileName\nreturn [{\n  json: {\n    ...input.json,\n    aiTitle: aiTitle,\n    block1: chunks[0] || '',\n    block2: chunks[1] || '',\n    block3: chunks[2] || '',\n    coverImageFileName: input.json.coverImageFileName // <-- Make sure this line is here!\n  },\n  binary: input.binary || {}\n}];\n"
+        "operation": "move",
+        "path": "={{ $json.pathDisplay }}",
+        "toPath": "={{ $('DESTINATION FOLDER').last().json.folder }}old/{{ $json.name }}_{{ $('GET CURRENT DATE').last().json.formattedDate }}.json"
       },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "id": "5907f280-0aa5-43e9-95f6-91515b1dc37b",
+      "name": "MOVE INTO OLD FOLDER",
+      "type": "n8n-nodes-base.dropbox",
       "position": [
-        -1060,
-        620
+        560,
+        140
       ],
-      "id": "2a77417a-46b5-40d6-afb9-111492757484",
-      "name": "Process AI Output"
+      "executeOnce": false,
+      "notesInFlow": true,
+      "retryOnFail": false,
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "dropboxApi": {
+          "id": "7S85Xl3wT16hm4L2",
+          "name": "Dropbox account"
+        }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "model": {
-          "__rl": true,
-          "value": "claude-opus-4-20250514",
-          "mode": "list",
-          "cachedResultName": "Claude Opus 4"
+        "resource": "folder",
+        "operation": "list",
+        "path": "={{ $('DESTINATION FOLDER').last().json.folder }}old",
+        "limit": 500,
+        "filters": {}
+      },
+      "id": "2c04bb45-c97c-4e30-b972-51d987c9ba2f",
+      "name": "LIST OLD BACKUPS",
+      "type": "n8n-nodes-base.dropbox",
+      "position": [
+        80,
+        580
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "dropboxApi": {
+          "id": "7S85Xl3wT16hm4L2",
+          "name": "Dropbox account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "e0aa83a7-a65b-4008-9010-bf4f14c0c398",
+              "operator": {
+                "type": "dateTime",
+                "operation": "before"
+              },
+              "leftValue": "={{ $json.lastModifiedServer }}",
+              "rightValue": "={{ $('PURGE DAYS').item.json.newDate }}"
+            }
+          ]
         },
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
-      "typeVersion": 1.3,
+      "id": "351d2986-7e3e-4684-97f4-376eb0e2029a",
+      "name": "CHECK DATES",
+      "type": "n8n-nodes-base.if",
       "position": [
-        -1360,
-        740
+        300,
+        580
       ],
-      "id": "dea73bdc-1a15-40a2-8d47-72dfb3aed774",
-      "name": "Anthropic Chat Model",
-      "credentials": {
-        "anthropicApi": {
-          "id": "l8nsyOPKZPhdPs1R",
-          "name": "Anthropic account"
-        }
-      }
+      "typeVersion": 2
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://api.pdf.co/v1/file/upload/base64",
+        "operation": "formatDate",
+        "date": "={{ $now }}",
+        "format": "=yyyy-MM-dd_HHmm",
+        "options": {}
+      },
+      "id": "73cbacfa-9530-4c11-8b39-360bbf061452",
+      "name": "GET CURRENT DATE",
+      "type": "n8n-nodes-base.dateTime",
+      "position": [
+        -120,
+        140
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "https://primary-production-a00b4.up.railway.app/api/v1/workflows",
         "authentication": "genericCredentialType",
-        "genericAuthType": "httpBearerAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "x-api-key",
-              "value": "=bright@zumbador.com_YOhLhWaPTC9iNLyMEqLxj36vozhJA8LUQy5a0QXlKjBhdZdDEA95w61lILhWIWsl"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{$json}}",
+        "genericAuthType": "httpHeaderAuth",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -2300,
-        780
+        120,
+        340
       ],
-      "id": "8429e8bc-a2dd-417b-986e-2c47e7573b8d",
-      "name": "Upload PDF to PDF.co1",
+      "id": "04867201-6545-44ec-8932-025f0d67abad",
+      "name": "HTTP Request",
       "credentials": {
-        "httpBearerAuth": {
-          "id": "K1q8u1aqz0KKzpwN",
-          "name": "Bearer Auth account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.pdf.co/v1/pdf/convert/to/png",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "x-api-key",
-              "value": "bright@zumbador.com_YOhLhWaPTC9iNLyMEqLxj36vozhJA8LUQy5a0QXlKjBhdZdDEA95w61lILhWIWsl"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"url\": \"{{ $json.url }}\",\n  \"pages\": \"\",\n  \"inline\": true,\n  \"async\": false\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -2080,
-        780
-      ],
-      "id": "e8d37dfc-e33e-4b27-a206-3821eb4d53b6",
-      "name": "PDF to PNG conversion"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        -2960,
-        780
-      ],
-      "id": "e4dd01a2-4ca5-4886-b8d0-eb4558afdc8f",
-      "name": "Merge"
-    },
-    {
-      "parameters": {
-        "jsCode": "const binaryData = $input.first().binary.data;\nconst fileName = binaryData.fileName || 'document.pdf';\nconst buffer = await this.helpers.getBinaryDataBuffer(0, 'data');\nconst fileBase64 = buffer.toString('base64');\nreturn [{\n  json: {\n    file: `data:application/pdf;base64,${fileBase64}`,\n    name: fileName\n  }\n}];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -2520,
-        780
-      ],
-      "id": "8ec84946-5471-4b78-9e33-0d66e2713fe6",
-      "name": "Code"
-    },
-    {
-      "parameters": {
-        "operation": "upload",
-        "bucketName": "xaraban",
-        "fileName": "=ban/pdf_summary/{{ $json.coverImageFileName }}",
-        "binaryPropertyName": "coverImage",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.awsS3",
-      "typeVersion": 2,
-      "position": [
-        -1360,
-        920
-      ],
-      "id": "09a11766-7ce3-4ec9-b677-0de1a8831ca3",
-      "name": "AWS S3",
-      "credentials": {
-        "aws": {
-          "id": "1EzY6RGV9x9KCtu0",
-          "name": "AWS account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "combineBy": "combineByPosition",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        -840,
-        780
-      ],
-      "id": "b38655bc-f57e-4416-bfe1-06b8783054a6",
-      "name": "Merge1"
-    },
-    {
-      "parameters": {
-        "jsCode": "const input = $input.first();\nconst fileName =\n  input.binary &&\n  input.binary.coverImage &&\n  input.binary.coverImage.fileName\n    ? input.binary.coverImage.fileName\n    : 'default.png';\n\nreturn [{\n  json: {\n    ...input.json,\n    coverImageFileName: fileName\n  },\n  binary: input.binary\n}];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1640,
-        920
-      ],
-      "id": "d0df7639-f378-4d0f-9714-d43cf708589c",
-      "name": "Add File name to JSON"
-    },
-    {
-      "parameters": {
-        "jsCode": "const input = $input.first();\nconst key = input.json.Key || 'default.png'; // S3 node outputs the file path in \"Key\"\nreturn [{\n  json: {\n    ...input.json,\n    s3Url: `https://xaraban.s3.amazonaws.com/${key}`\n  }\n}];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1060,
-        920
-      ],
-      "id": "ef699ec5-a1a4-4b43-8577-3f761f4d44ae",
-      "name": "Add s3Url to JSON"
-    },
-    {
-      "parameters": {
-        "pageId": {
-          "__rl": true,
-          "value": "https://www.notion.so/PDF-Summary-2007112e57b980d8b998e19f93512ba1",
-          "mode": "url"
-        },
-        "title": "={{ $json.aiTitle }}",
-        "blockUi": {
-          "blockValues": [
-            {
-              "type": "=paragraph",
-              "textContent": "=={{ $json.block1 }}"
-            },
-            {
-              "type": "=paragraph",
-              "textContent": "=={{ $json.block2 }}"
-            },
-            {
-              "richText": "={{ false }}",
-              "textContent": "=={{ $json.block3 }}"
-            },
-            {
-              "type": "=paragraph",
-              "richText": "={{ false }}",
-              "textContent": "={{ $json.s3Url }}"
-            },
-            {
-              "textContent": "={\n  \"type\": \"image\",\n  \"image\": {\n    \"type\": \"external\",\n    \"external\": {\n      \"url\": \"{{ $json.s3Url }}\"\n    }\n  }\n}\n"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.notion",
-      "typeVersion": 2.2,
-      "position": [
-        -580,
-        40
-      ],
-      "id": "4e77f9aa-1d26-4159-982c-16e3ecb38a87",
-      "name": "Notion_good",
-      "alwaysOutputData": false
-    },
-    {
-      "parameters": {
-        "pageId": {
-          "__rl": true,
-          "value": "https://www.notion.so/PDF-Summary-2007112e57b980d8b998e19f93512ba1",
-          "mode": "url"
-        },
-        "title": "={{ $json.aiTitle }}",
-        "blockUi": {
-          "blockValues": [
-            {
-              "textContent": "={{ $json.block1 }}"
-            },
-            {
-              "textContent": "={{ $json.block2 }}"
-            },
-            {
-              "textContent": "={{ $json.block3 }}"
-            },
-            {
-              "textContent": "={{ $json.s3Url }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.notion",
-      "typeVersion": 2.2,
-      "position": [
-        -500,
-        760
-      ],
-      "id": "cfc35036-10f1-46c6-9bac-863c5574c413",
-      "name": "Notion_good_urlonly",
-      "credentials": {
-        "notionApi": {
-          "id": "wv5ZmtxyRwkU0dXZ",
-          "name": "Notion account"
+        "httpHeaderAuth": {
+          "id": "tEIZVxbqmyosk2tI",
+          "name": "Header Auth account 2"
         }
       }
     }
   ],
   "connections": {
-    "On form submission": {
+    "Schedule Trigger": {
       "main": [
         [
           {
-            "node": "Merge",
+            "node": "DESTINATION FOLDER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PURGE DAYS": {
+      "main": [
+        [
+          {
+            "node": "LIST OLD BACKUPS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MAKE JSON FILES": {
+      "main": [
+        [
+          {
+            "node": "UPLOAD WORKFLOWS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DESTINATION FOLDER": {
+      "main": [
+        [
+          {
+            "node": "GET CURRENT DATE",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Extract from File",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract from File": {
-      "main": [
-        [
-          {
-            "node": "Merge",
+            "node": "WAIT FOR MOVE TO FINISH",
             "type": "main",
             "index": 1
-          }
-        ]
-      ]
-    },
-    "Text Processing & Setup": {
-      "main": [
-        [
-          {
-            "node": "Code",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Download Cover Image": {
-      "main": [
-        [
-          {
-            "node": "Combine Text & Image",
-            "type": "main",
-            "index": 0
           },
           {
-            "node": "Add File name to JSON",
+            "node": "PURGE DAYS",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Combine Text & Image": {
+    "WAIT FOR MOVE TO FINISH": {
       "main": [
         [
           {
-            "node": "AI Agent",
+            "node": "HTTP Request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "AI Agent": {
+    "GET CURRENT BACKUPS": {
       "main": [
         [
           {
-            "node": "Process AI Output",
+            "node": "IGNORE FOLDERS",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Process AI Output": {
+    "IGNORE FOLDERS": {
       "main": [
         [
           {
-            "node": "Merge1",
+            "node": "MOVE INTO OLD FOLDER",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Anthropic Chat Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Upload PDF to PDF.co1": {
+    "MOVE INTO OLD FOLDER": {
       "main": [
         [
           {
-            "node": "PDF to PNG conversion",
+            "node": "WAIT FOR MOVE TO FINISH",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "PDF to PNG conversion": {
+    "LIST OLD BACKUPS": {
       "main": [
         [
           {
-            "node": "Download Cover Image",
+            "node": "CHECK DATES",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Merge": {
+    "CHECK DATES": {
       "main": [
         [
           {
-            "node": "Text Processing & Setup",
+            "node": "DELETE OLD BACKUPS",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code": {
+    "GET CURRENT DATE": {
       "main": [
         [
           {
-            "node": "Upload PDF to PDF.co1",
+            "node": "GET CURRENT BACKUPS",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "AWS S3": {
+    "HTTP Request": {
       "main": [
         [
           {
-            "node": "Add s3Url to JSON",
+            "node": "MAKE JSON FILES",
             "type": "main",
             "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge1": {
-      "main": [
-        [
-          {
-            "node": "Notion_good_urlonly",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Add File name to JSON": {
-      "main": [
-        [
-          {
-            "node": "AWS S3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Add s3Url to JSON": {
-      "main": [
-        [
-          {
-            "node": "Merge1",
-            "type": "main",
-            "index": 1
           }
         ]
       ]
@@ -583,11 +511,9 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
+  "meta": null,
   "pinData": {},
-  "versionId": "27346832-ec11-460d-8926-ef815200efe7",
+  "versionId": "9598ec7e-3c40-469a-bb08-576ac8bf8017",
   "triggerCount": 0,
   "tags": []
 }
