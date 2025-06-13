@@ -1,885 +1,254 @@
 {
-  "createdAt": "2025-06-08T17:50:50.939Z",
-  "updatedAt": "2025-06-08T18:28:03.355Z",
-  "id": "mr8br9OcLAyhj1JN",
-  "name": "Projects/Spaces Agent. Postgres-Based Memory System",
+  "createdAt": "2025-06-13T00:32:03.973Z",
+  "updatedAt": "2025-06-13T00:32:53.258Z",
+  "id": "jJUpvtT5tlWrMvcM",
+  "name": "My workflow 9",
   "active": false,
-  "isArchived": false,
+  "isArchived": true,
   "nodes": [
     {
       "parameters": {
-        "public": true,
-        "initialMessages": "Hello! 👋 I'm your AI Assistant Router with persistent memory.\n\n## 🤖 Available Specialized Agents:\n🔬 **Research Agent** - Deep analysis, citations, fact-checking\n💻 **Code Agent** - Programming, debugging, technical solutions\n✍️ **Writing Agent** - Content creation, editing, storytelling\n📊 **Business Agent** - Strategy, analysis, productivity\n🎨 **Creative Agent** - Art concepts, brainstorming, innovation\n📚 **Education Agent** - Learning, explanations, tutoring\n\n## 🎯 How to Use:\n\n**Option 1 - Let me choose automatically:**\nJust ask your question naturally, and I'll route it to the best agent.\n\n**Option 2 - Choose an agent manually:**\n- `@research What are the latest AI developments?`\n- `@code Help me debug this Python function`\n- `@writing Create a blog post about productivity`\n- `@business Analyze our market strategy`\n- `@creative Brainstorm campaign ideas`\n- `@education Explain quantum physics simply`\n\n**Alternative manual formats:**\n- `contact research agent: your question`\n- `use code agent for: your question`\n\nWhat can I help you with today?",
-        "options": {
-          "allowFileUploads": true
-        }
-      },
-      "id": "7a6e1f7b-e9db-497e-87ed-0a8d8f00c7a3",
-      "name": "When chat message received",
-      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
-      "position": [
-        -1620,
-        460
-      ],
-      "webhookId": "specialized-ai-router",
-      "typeVersion": 1.1
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "claude-3-5-sonnet-20241022"
-        },
-        "options": {
-          "maxTokensToSample": 1024
-        }
-      },
-      "id": "56a47741-8b19-49ac-afb8-e8e59af81e30",
-      "name": "Router LLM",
-      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
-      "position": [
-        -1360,
-        680
-      ],
-      "typeVersion": 1.3
-    },
-    {
-      "parameters": {
-        "hasOutputParser": true,
-        "options": {
-          "systemMessage": "You are an **AI Agent Router** that handles both automatic routing and manual agent selection.\n\n## Available Specialized Agents:\n\n1. **research** - For factual research, data analysis, citations, academic queries, fact-checking\n2. **code** - For programming, debugging, technical documentation, software development\n3. **writing** - For content creation, editing, storytelling, copywriting, creative writing\n4. **business** - For business strategy, productivity, project management, market analysis\n5. **creative** - For brainstorming, art concepts, design thinking, innovation\n6. **education** - For learning, explanations, tutoring, curriculum development\n7. **general** - For simple queries that don't require specialization\n\n## Manual Agent Selection:\n\nCheck if the user is manually selecting an agent using these patterns:\n- \"@research [question]\"\n- \"@code [question]\"\n- \"@writing [question]\"\n- \"@business [question]\"\n- \"@creative [question]\"\n- \"@education [question]\"\n- \"@general [question]\"\n\nOR:\n- \"contact research agent: [question]\"\n- \"contact code agent: [question]\"\n- \"contact writing agent: [question]\"\n- \"contact business agent: [question]\"\n- \"contact creative agent: [question]\"\n- \"contact education agent: [question]\"\n- \"contact general agent: [question]\"\n\nOR:\n- \"use research agent for [question]\"\n- \"use code agent for [question]\"\n- \"use writing agent for [question]\"\n- \"use business agent for [question]\"\n- \"use creative agent for [question]\"\n- \"use education agent for [question]\"\n- \"use general agent for [question]\"\n\n## Processing Logic:\n\n1. **Manual Selection**: If user explicitly mentions an agent, extract the agent name and the actual question\n2. **Automatic Selection**: If no agent is specified, analyze the query and select the most appropriate agent\n\n## Automatic Analysis Criteria:\n\n**Research Agent** - Use when:\n- User asks for facts, statistics, or current information\n- Needs citations or sources\n- Requests analysis of data or trends\n- Academic or scientific queries\n\n**Code Agent** - Use when:\n- User asks about programming languages\n- Needs debugging help or code review\n- Requests technical documentation\n- Software architecture questions\n\n**Writing Agent** - Use when:\n- User needs content creation (articles, blogs, stories)\n- Requests editing or proofreading\n- Creative writing projects\n- Marketing copy or communications\n\n**Business Agent** - Use when:\n- User asks about business strategy\n- Needs productivity or workflow advice\n- Market analysis or competitive research\n- Project management guidance\n\n**Creative Agent** - Use when:\n- User needs brainstorming or ideation\n- Art or design concept development\n- Innovation or creative problem-solving\n- Visual or artistic projects\n\n**Education Agent** - Use when:\n- User needs learning assistance\n- Requests explanations of concepts\n- Tutoring or homework help\n- Curriculum or lesson planning\n\n## Output Format:\n\nRespond ONLY with a JSON object:\n\n```json\n{\n  \"agent_type\": \"selected_agent_name\",\n  \"prompt\": \"cleaned user query without agent selection syntax\",\n  \"reasoning\": \"brief explanation of selection (manual or automatic)\"\n}\n```"
-        }
-      },
-      "id": "fa0febb4-b228-4b05-b736-803c47790f66",
-      "name": "AI Agent Router",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        -1400,
-        460
-      ],
-      "typeVersion": 1.9
-    },
-    {
-      "parameters": {
-        "schemaType": "manual",
-        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"agent_type\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"enum\": [\"research\", \"code\", \"writing\", \"business\", \"creative\", \"education\", \"general\"]\n\t\t},\n\t\t\"prompt\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n\t\t\"reasoning\": {\n\t\t\t\"type\": \"string\"\n\t\t}\n\t}\n}"
-      },
-      "id": "7618a32e-beb6-401a-a6e6-fa594b33e5fe",
-      "name": "Agent Selector Parser",
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "position": [
-        -1240,
-        680
-      ],
-      "typeVersion": 1.2
-    },
-    {
-      "parameters": {
-        "rules": {
+        "formTitle": "Submit PDF",
+        "formDescription": "Submit pdf file",
+        "formFields": {
           "values": [
             {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 1
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.output.agent_type }}",
-                    "rightValue": "research",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "69b034d4-244a-4bff-8f72-06ddf34acb37"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 1
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.output.agent_type }}",
-                    "rightValue": "code",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "2f16c2ab-921b-42ea-923d-7545e7e50e63"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 1
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.output.agent_type }}",
-                    "rightValue": "writing",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "b23b3679-47c6-4948-b65e-82e5898e2031"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 1
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.output.agent_type }}",
-                    "rightValue": "business",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "575ca4d0-0ab4-407a-a090-f30879a2a69f"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 1
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.output.agent_type }}",
-                    "rightValue": "creative",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "a7efbb1c-929d-4b08-b729-faf1cb676b8c"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 1
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.output.agent_type }}",
-                    "rightValue": "education",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "0926c1a8-5351-4a4f-8e75-4d5c6a39ba8b"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 1
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.output.agent_type }}",
-                    "rightValue": "general",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "4253655b-0e4e-4498-ae0a-121df77dfc12"
-                  }
-                ],
-                "combinator": "and"
-              }
+              "fieldLabel": "data",
+              "fieldType": "file"
             }
           ]
         },
-        "options": {
-          "fallbackOutput": "Extra Output"
-        }
-      },
-      "id": "e4f6a658-5e5e-4519-b0b8-86418934084c",
-      "name": "Agent Switch",
-      "type": "n8n-nodes-base.switch",
-      "position": [
-        -1020,
-        380
-      ],
-      "typeVersion": 3
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "claude-3-5-sonnet-20241022"
-        },
         "options": {}
       },
-      "id": "e76e4f87-0628-4999-9736-bc1a2bb4507a",
-      "name": "Agent LLM",
-      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
       "position": [
         -160,
-        -200
+        260
       ],
-      "typeVersion": 1.3
-    },
-    {
-      "parameters": {},
-      "id": "00fe7684-ef0b-40c9-8811-0b43f13a2c7f",
-      "name": "Think",
-      "type": "@n8n/n8n-nodes-langchain.toolThink",
-      "position": [
-        140,
-        -200
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {},
-      "id": "ac2fc237-3bdb-4570-b5b2-5086a5109304",
-      "name": "Calculator",
-      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
-      "position": [
-        340,
-        -200
-      ],
-      "typeVersion": 1
+      "id": "77e76e12-5bb6-4002-8d5a-71786d4165aa",
+      "name": "On form submission",
+      "webhookId": "296d51cf-550a-476f-be81-4aa1b5ebc4c4"
     },
     {
       "parameters": {
-        "toolDescription": "Search the web for current information and facts",
-        "method": "POST",
-        "url": "https://api.anthropic.com/v1/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "anthropicApi",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
+        "promptType": "define",
+        "text": "=Here is the PDF content: {{ $json.text }}\n\nPlease analyze this document and return **exactly** the following, with no extra commentary:\n\nTITLE: [Document title]\n\nYEAR: [Publication year]\n\nAUTHOR: [Author name(s)]\n\nPAGES: [Total page count]\n\nOVERVIEW (50 words):  \n[Write a 50-word overview of the document.]\n\nSUMMARY (300 words):  \n[Write a 300-word summary targeting \"White paper\" and the document title.]\n\nMETA DESCRIPTION (160 chars max):  \n[Write a meta description, no more than 160 characters.]\nDescribe your new note here.\n\nReview 1 (50 - 100 words):\n[Write a 150-word posotive review of the document.]",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        500,
+        260
+      ],
+      "id": "ca85fb5d-03e4-4c3c-9b6f-48b3a28f77af",
+      "name": "AI Agent",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nlet text = input.json.output || '';\n\n// Extract title from the AI output\nconst titleMatch = text.match(/TITLE: (.+)/);\nconst aiTitle = titleMatch ? titleMatch[1].trim() : 'Untitled';\n\n// Split text into chunks that fit Notion's 2000 char limit\nconst chunks = [];\nlet remainingText = text;\n\nwhile (remainingText.length > 0) {\n  let chunk = remainingText.substring(0, 1900);\n\n  // If there's more text, try to break at a natural point\n  if (remainingText.length > 1900) {\n    const lastPeriod = chunk.lastIndexOf('. ');\n    const lastNewline = chunk.lastIndexOf('\\n');\n\n    if (lastPeriod > 1200) {\n      chunk = chunk.substring(0, lastPeriod + 1);\n    } else if (lastNewline > 1200) {\n      chunk = chunk.substring(0, lastNewline);\n    }\n  }\n\n  chunks.push(chunk.trim());\n  remainingText = remainingText.substring(chunk.length).trim();\n}\n\n// Return all original data plus split blocks, extracted title, and coverImageFileName\nreturn [{\n  json: {\n    ...input.json,\n    aiTitle: aiTitle,\n    block1: chunks[0] || '',\n    block2: chunks[1] || '',\n    block3: chunks[2] || '',\n    coverImageFileName: input.json.coverImageFileName // <-- Make sure this line is here!\n  },\n  binary: input.binary || {}\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        876,
+        260
+      ],
+      "id": "d3c22cd8-fb53-4018-8b20-838aa1bbdc03",
+      "name": "Process AI Output"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-preview-05-20",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        588,
+        480
+      ],
+      "id": "f11d200f-2692-4696-a375-1b6f87c9a013",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "98JqTQmfb8tBNsCz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map((item, index) => {\n  console.log(`=== PROCESSING ITEM ${index + 1} ===`);\n  console.log('Full item structure:', JSON.stringify(item, null, 2));\n  \n  let originalFileName = null;\n  let binaryData = {};\n  \n  // Method 1: Check if binary data exists and extract filename\n  if (item.binary && Object.keys(item.binary).length > 0) {\n    console.log('Binary data found. Keys:', Object.keys(item.binary));\n    \n    // Usually the form field name is 'data' for file uploads\n    const binaryKey = Object.keys(item.binary)[0]; // Get first binary key\n    console.log('Using binary key:', binaryKey);\n    \n    if (item.binary[binaryKey]) {\n      binaryData = {};\n      binaryData[binaryKey] = item.binary[binaryKey];\n      \n      // Extract filename from binary data\n      const binaryInfo = item.binary[binaryKey];\n      console.log('Binary info:', {\n        fileName: binaryInfo.fileName,\n        mimeType: binaryInfo.mimeType,\n        fileExtension: binaryInfo.fileExtension,\n        hasData: !!binaryInfo.data\n      });\n      \n      // Try multiple ways to get filename\n      originalFileName = binaryInfo.fileName || \n                       binaryInfo.filename || \n                       binaryInfo.name ||\n                       binaryInfo.originalname;\n      \n      console.log('Extracted filename:', originalFileName);\n    }\n  }\n  \n  // Method 2: Check form data structure\n  if (!originalFileName && item.json) {\n    console.log('Checking JSON structure for filename...');\n    \n    // Check if there's form data with filename\n    if (item.json.data && Array.isArray(item.json.data)) {\n      const fileField = item.json.data.find(field => \n        field.fieldName === 'data' || \n        field.fieldType === 'file' ||\n        field.filename ||\n        field.fileName\n      );\n      \n      if (fileField) {\n        originalFileName = fileField.filename || \n                         fileField.fileName || \n                         fileField.name;\n        console.log('Found filename in form data:', originalFileName);\n      }\n    }\n    \n    // Direct filename fields\n    if (!originalFileName) {\n      originalFileName = item.json.filename || \n                       item.json.fileName || \n                       item.json.originalFileName ||\n                       item.json.name;\n      console.log('Found filename in JSON:', originalFileName);\n    }\n  }\n  \n  // Method 3: Generate filename if still not found - BUT KEEP IT SIMPLE\n  if (!originalFileName || originalFileName === 'undefined' || originalFileName === '') {\n    console.log('No filename found, using default...');\n    // Use a simple default that won't cause issues\n    originalFileName = 'uploaded-document.pdf';\n    console.log('Using default filename:', originalFileName);\n  }\n  \n  // Clean up filename (remove any problematic characters but preserve original name structure)\n  // Only replace truly problematic characters, keep hyphens and underscores\n  originalFileName = originalFileName.replace(/[<>:\"/\\\\|?*]/g, '_');\n  \n  // Ensure .pdf extension\n  if (!originalFileName.toLowerCase().endsWith('.pdf')) {\n    const nameWithoutExt = originalFileName.split('.')[0];\n    originalFileName = nameWithoutExt + '.pdf';\n  }\n  \n  console.log('Final filename:', originalFileName);\n  \n  // Validation\n  const hasValidFilename = originalFileName && originalFileName !== 'undefined';\n  const hasValidBinary = Object.keys(binaryData).length > 0;\n  \n  console.log('Validation:');\n  console.log('- Valid filename:', hasValidFilename);\n  console.log('- Valid binary data:', hasValidBinary);\n  console.log('- Binary data keys:', Object.keys(binaryData));\n  \n  if (hasValidBinary) {\n    const firstBinaryKey = Object.keys(binaryData)[0];\n    console.log('- Binary data size:', binaryData[firstBinaryKey]?.data?.length || 'unknown');\n  }\n  \n  console.log('================================');\n  \n  return {\n    json: {\n      ...item.json,\n      originalFileName: originalFileName,\n      processingTimestamp: new Date().toISOString(),\n      validationStatus: {\n        hasFilename: hasValidFilename,\n        hasBinary: hasValidBinary,\n        readyForUpload: hasValidFilename && hasValidBinary\n      },\n      extractionMethod: 'enhanced_extraction_v3'\n    },\n    binary: binaryData\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        60,
+        260
+      ],
+      "id": "3a79a829-6135-4f0e-adf8-e1250611afee",
+      "name": "Binary Data Extraction"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        280,
+        260
+      ],
+      "id": "db5a51b7-c21d-46c0-9f50-eaa43645a1d6",
+      "name": "Extract from File1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "pageId": {
+          "__rl": true,
+          "value": "https://www.notion.so/PDF-Summary-20a7112e57b98127b5a3f03fdd045cbf",
+          "mode": "url"
+        },
+        "title": "={{ $json.aiTitle }}",
+        "blockUi": {
+          "blockValues": [
             {
-              "name": "anthropic-version",
-              "value": "2023-06-01"
+              "textContent": "={{ $json.block1 }}"
             },
             {
-              "name": "content-type",
-              "value": "application/json"
+              "textContent": "={{ $json.block2 }}"
+            },
+            {
+              "textContent": "={{ $json.block3 }}"
             }
           ]
         },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 1024,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{web_search_query}\"\n    }\n  ],\n  \"tools\": [\n    {\n      \"type\": \"web_search_20250305\",\n      \"name\": \"web_search\",\n      \"max_uses\": 5\n    }\n  ]\n}",
         "options": {}
       },
-      "id": "3d9b4876-3585-4a38-b043-44a69d3dbfbf",
-      "name": "Web Search",
-      "type": "n8n-nodes-base.httpRequestTool",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
       "position": [
-        540,
-        -200
+        -160,
+        -100
       ],
-      "typeVersion": 4.2
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are a **Research Specialist AI** with expertise in:\n\n🔬 **Core Capabilities:**\n- Factual research and verification\n- Data analysis and interpretation\n- Academic and scientific inquiry\n- Source citation and references\n- Trend analysis and insights\n\n📋 **Research Protocols:**\n- Always verify information through multiple sources when possible\n- Provide citations and references where available\n- Distinguish between facts, opinions, and speculation\n- Use web search for current information when needed\n- Present findings in structured, analytical format\n\n🎯 **Specialized Tools:**\n- Web search for current data\n- Calculator for statistical analysis\n- Think tool for complex reasoning\n\n**Instructions:** Provide thorough, well-researched responses with proper attribution and evidence-based conclusions."
+      "id": "8bb31ca9-b2f6-4720-b0c5-d2fe171cf355",
+      "name": "Notion_PDF Summary",
+      "credentials": {
+        "notionApi": {
+          "id": "wv5ZmtxyRwkU0dXZ",
+          "name": "Notion account"
         }
-      },
-      "id": "de12516d-1ec9-4974-85b6-0e9271172faa",
-      "name": "🔬 Research Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        -580,
-        -320
-      ],
-      "typeVersion": 1.9
+      }
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are a **Code Specialist AI** with expertise in:\n\n💻 **Programming Capabilities:**\n- Multi-language programming (Python, JavaScript, Java, C++, etc.)\n- Code debugging and optimization\n- Software architecture and design patterns\n- API development and integration\n- Database design and queries\n\n🛠️ **Development Focus:**\n- Write clean, efficient, well-documented code\n- Provide step-by-step debugging guidance\n- Explain complex technical concepts clearly\n- Follow industry best practices and standards\n- Offer multiple solution approaches when applicable\n\n🎯 **Code Standards:**\n- Include proper error handling\n- Add meaningful comments and documentation\n- Consider security and performance implications\n- Provide testing suggestions when relevant\n\n**Instructions:** Deliver practical, production-ready code solutions with clear explanations and best practices."
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "2087112e-57b9-80d4-af14-e4989ea2920c",
+          "mode": "list",
+          "cachedResultName": "PDF Summary table",
+          "cachedResultUrl": "https://www.notion.so/2087112e57b980d4af14e4989ea2920c"
+        },
+        "title": "={{ $json.aiTitle }}",
+        "blockUi": {
+          "blockValues": [
+            {
+              "textContent": "={{ $json.block1 }}"
+            },
+            {
+              "textContent": "={{ $json.block2 }}"
+            },
+            {
+              "textContent": "={{ $json.block3 }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1096,
+        260
+      ],
+      "id": "bdb11450-8483-4712-b2ab-74376a8fd9b9",
+      "name": "Notion_PDF Summary TABLE",
+      "credentials": {
+        "notionApi": {
+          "id": "wv5ZmtxyRwkU0dXZ",
+          "name": "Notion account"
         }
-      },
-      "id": "b4f3c1bd-0540-46b5-9abb-8c052ead2c3d",
-      "name": "💻 Code Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        660,
-        280
-      ],
-      "typeVersion": 1.9
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are a **Writing Specialist AI** with expertise in:\n\n✍️ **Writing Capabilities:**\n- Content creation (articles, blogs, copy)\n- Creative writing (stories, scripts, poetry)\n- Technical writing and documentation\n- Editing and proofreading\n- Communication and messaging\n\n📝 **Writing Standards:**\n- Adapt tone and style to target audience\n- Ensure clarity, coherence, and engagement\n- Follow proper grammar and style guidelines\n- Structure content for maximum impact\n- Optimize for specific platforms when needed\n\n🎨 **Creative Approach:**\n- Develop compelling narratives and storylines\n- Create memorable characters and dialogue\n- Use literary devices effectively\n- Balance creativity with purpose\n- Consider emotional impact and reader experience\n\n**Instructions:** Create compelling, well-structured content that engages the target audience and achieves the intended purpose."
-        }
-      },
-      "id": "7adfa212-7dde-4f07-b08a-327f9ca3414f",
-      "name": "✍️ Writing Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        520,
-        620
-      ],
-      "typeVersion": 1.9
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are a **Business Specialist AI** with expertise in:\n\n📊 **Business Capabilities:**\n- Strategic planning and analysis\n- Market research and competitive analysis\n- Productivity and workflow optimization\n- Project management and operations\n- Financial analysis and budgeting\n\n💼 **Business Focus:**\n- Provide actionable business insights\n- Consider ROI and business impact\n- Suggest practical implementation steps\n- Analyze risks and opportunities\n- Align solutions with business objectives\n\n🎯 **Strategic Approach:**\n- Think holistically about business challenges\n- Consider stakeholder perspectives\n- Provide data-driven recommendations\n- Account for resource constraints\n- Focus on measurable outcomes\n\n**Instructions:** Deliver strategic, practical business advice that drives results and creates value for the organization."
-        }
-      },
-      "id": "963927fa-e7b7-4669-be9b-95dd6abd6bfe",
-      "name": "📊 Business Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        520,
-        920
-      ],
-      "typeVersion": 1.9
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are a **Creative Specialist AI** with expertise in:\n\n🎨 **Creative Capabilities:**\n- Brainstorming and ideation\n- Design thinking and innovation\n- Art and visual concepts\n- Creative problem-solving\n- Brand and identity development\n\n💡 **Creative Process:**\n- Generate diverse, original ideas\n- Think outside conventional boundaries\n- Combine concepts in novel ways\n- Consider aesthetic and emotional impact\n- Iterate and refine creative concepts\n\n🌟 **Innovation Focus:**\n- Challenge assumptions and norms\n- Explore unconventional approaches\n- Balance creativity with feasibility\n- Consider user experience and engagement\n- Inspire and motivate through creativity\n\n**Instructions:** Generate innovative, inspiring creative solutions that push boundaries while remaining practical and purposeful."
-        }
-      },
-      "id": "80b96b05-7d6c-4c79-ba89-b2080f6705e2",
-      "name": "🎨 Creative Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        520,
-        1280
-      ],
-      "typeVersion": 1.9
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are an **Education Specialist AI** with expertise in:\n\n📚 **Educational Capabilities:**\n- Learning and skill development\n- Concept explanation and clarification\n- Curriculum design and lesson planning\n- Assessment and feedback\n- Personalized learning approaches\n\n🎓 **Teaching Methods:**\n- Adapt explanations to learning level\n- Use examples and analogies effectively\n- Break complex topics into digestible parts\n- Encourage active learning and engagement\n- Provide practice opportunities and feedback\n\n🌱 **Learning Focus:**\n- Foster understanding over memorization\n- Build connections between concepts\n- Encourage critical thinking skills\n- Support different learning styles\n- Promote lifelong learning habits\n\n**Instructions:** Provide clear, engaging educational content that promotes deep understanding and effective learning outcomes."
-        }
-      },
-      "id": "7f2f54ae-42e5-4323-b359-f006596f9598",
-      "name": "📚 Education Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        320,
-        1700
-      ],
-      "typeVersion": 1.9
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are a **General Purpose AI Assistant** designed to handle diverse queries with:\n\n🤖 **General Capabilities:**\n- Comprehensive knowledge across domains\n- Balanced approach to problem-solving\n- Clear and helpful communication\n- Adaptable to various contexts\n\n**Instructions:** Provide helpful, accurate responses while maintaining a friendly and professional tone."
-        }
-      },
-      "id": "d19616c3-1341-4153-839c-02b552f209be",
-      "name": "🤖 General Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        200,
-        2140
-      ],
-      "typeVersion": 1.9
-    },
-    {
-      "parameters": {
-        "sessionKey": "research_agent_memory_{{ $('When chat message received').item.json.sessionId }}",
-        "tableName": "research_agent_memory",
-        "contextWindowLength": 20
-      },
-      "id": "fe1e4394-4a14-4863-a6d1-2ecaf9e9a3db",
-      "name": "Research Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
-      "position": [
-        0,
-        -200
-      ],
-      "typeVersion": 1.3
-    },
-    {
-      "parameters": {
-        "sessionKey": "code_agent_memory_{{ $('When chat message received').item.json.sessionId }}",
-        "tableName": "code_agent_memory",
-        "contextWindowLength": 20
-      },
-      "id": "72c78239-0bf2-4362-a212-78b6c69e81ea",
-      "name": "Code Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
-      "position": [
-        700,
-        480
-      ],
-      "typeVersion": 1.3
-    },
-    {
-      "parameters": {
-        "sessionKey": "writing_agent_memory_{{ $('When chat message received').item.json.sessionId }}",
-        "tableName": "writing_agent_memory",
-        "contextWindowLength": 20
-      },
-      "id": "2b17ca8d-c09e-4fb0-ad60-f59b05d155e1",
-      "name": "Writing Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
-      "position": [
-        620,
-        800
-      ],
-      "typeVersion": 1.3
-    },
-    {
-      "parameters": {
-        "sessionKey": "business_agent_memory_{{ $('When chat message received').item.json.sessionId }}",
-        "tableName": "business_agent_memory",
-        "contextWindowLength": 20
-      },
-      "id": "7a487a3c-aa86-47a4-ae8e-8c50f5b32f63",
-      "name": "Business Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
-      "position": [
-        520,
-        1140
-      ],
-      "typeVersion": 1.3
-    },
-    {
-      "parameters": {
-        "sessionKey": "creative_agent_memory_{{ $('When chat message received').item.json.sessionId }}",
-        "tableName": "creative_agent_memory",
-        "contextWindowLength": 20
-      },
-      "id": "ec532a8f-0d71-4422-9b7f-b8ecc037a054",
-      "name": "Creative Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
-      "position": [
-        400,
-        1520
-      ],
-      "typeVersion": 1.3
-    },
-    {
-      "parameters": {
-        "sessionKey": "education_agent_memory_{{ $('When chat message received').item.json.sessionId }}",
-        "tableName": "education_agent_memory",
-        "contextWindowLength": 20
-      },
-      "id": "2f96f381-0888-43ad-a534-0f5f2159cfaf",
-      "name": "Education Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
-      "position": [
-        380,
-        1900
-      ],
-      "typeVersion": 1.3
-    },
-    {
-      "parameters": {
-        "sessionKey": "general_agent_memory_{{ $('When chat message received').item.json.sessionId }}",
-        "tableName": "general_agent_memory",
-        "contextWindowLength": 20
-      },
-      "id": "81b96b1d-ec60-4889-9d77-4a4ab5187743",
-      "name": "General Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
-      "position": [
-        200,
-        2360
-      ],
-      "typeVersion": 1.3
+      }
     }
   ],
   "connections": {
-    "When chat message received": {
+    "On form submission": {
       "main": [
         [
           {
-            "node": "AI Agent Router",
+            "node": "Binary Data Extraction",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Agent Selector Parser": {
-      "ai_outputParser": [
-        [
-          {
-            "node": "AI Agent Router",
-            "type": "ai_outputParser",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent Router": {
+    "AI Agent": {
       "main": [
         [
           {
-            "node": "Agent Switch",
+            "node": "Process AI Output",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Router LLM": {
+    "Process AI Output": {
+      "main": [
+        [
+          {
+            "node": "Notion_PDF Summary TABLE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent Router",
+            "node": "AI Agent",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Agent Switch": {
+    "Binary Data Extraction": {
       "main": [
         [
           {
-            "node": "🔬 Research Agent",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "💻 Code Agent",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "✍️ Writing Agent",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "📊 Business Agent",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "🎨 Creative Agent",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "📚 Education Agent",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "🤖 General Agent",
+            "node": "Extract from File1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Agent LLM": {
-      "ai_languageModel": [
+    "Extract from File1": {
+      "main": [
         [
           {
-            "node": "🔬 Research Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "💻 Code Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "✍️ Writing Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "📊 Business Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "🎨 Creative Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "📚 Education Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "🤖 General Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Research Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "🔬 Research Agent",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "💻 Code Agent",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Writing Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "✍️ Writing Agent",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Business Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "📊 Business Agent",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Creative Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "🎨 Creative Agent",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Education Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "📚 Education Agent",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "General Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "🤖 General Agent",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Think": {
-      "ai_tool": [
-        [
-          {
-            "node": "🔬 Research Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "💻 Code Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "✍️ Writing Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "📊 Business Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "🎨 Creative Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "📚 Education Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "🤖 General Agent",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Calculator": {
-      "ai_tool": [
-        [
-          {
-            "node": "🔬 Research Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "💻 Code Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "✍️ Writing Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "📊 Business Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "🎨 Creative Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "📚 Education Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "🤖 General Agent",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Web Search": {
-      "ai_tool": [
-        [
-          {
-            "node": "🔬 Research Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "💻 Code Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "✍️ Writing Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "📊 Business Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "🎨 Creative Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "📚 Education Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "🤖 General Agent",
-            "type": "ai_tool",
+            "node": "AI Agent",
+            "type": "main",
             "index": 0
           }
         ]
@@ -892,7 +261,7 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "e4d55e50-12aa-4cc2-8563-4df398def0a9",
+  "versionId": "8fc54ffc-34ba-4d87-9e46-20173e047984",
   "triggerCount": 0,
   "tags": []
 }
