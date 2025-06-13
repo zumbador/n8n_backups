@@ -1,401 +1,353 @@
 {
-  "createdAt": "2025-06-12T19:31:18.307Z",
-  "updatedAt": "2025-06-12T19:31:18.307Z",
-  "id": "FQLUl9NtzYZf7Ji2",
-  "name": "firecrawl_email_scraper",
+  "createdAt": "2025-06-13T00:02:16.160Z",
+  "updatedAt": "2025-06-13T00:33:03.791Z",
+  "id": "4f8c7FvK5EhYEGMA",
+  "name": "My workflow 8",
   "active": false,
-  "isArchived": false,
+  "isArchived": true,
   "nodes": [
     {
       "parameters": {
-        "formTitle": "Email Scraper",
-        "formFields": {
-          "values": [
-            {
-              "fieldLabel": "Website Url",
-              "placeholder": "https://aitools.inc",
-              "requiredField": true
-            },
-            {
-              "fieldLabel": "Scrape Limit",
-              "fieldType": "number",
-              "placeholder": "8",
-              "requiredField": true
-            }
-          ]
-        },
-        "options": {}
+        "operation": "toJson",
+        "options": {
+          "format": true,
+          "fileName": "={{ $json.name + \".json\" }} "
+        }
       },
-      "type": "n8n-nodes-base.formTrigger",
-      "typeVersion": 2.2,
+      "id": "d2b95307-b4f4-4934-b62f-466126cf9046",
+      "name": "Convert to File",
+      "type": "n8n-nodes-base.convertToFile",
       "position": [
-        -2160,
-        20
+        -1340,
+        260
       ],
-      "id": "c7d9dbee-6a19-4521-abaf-a2a38345dd16",
-      "name": "form_trigger",
-      "webhookId": "7507734f-cf1f-49d5-a996-0bcd1bc7bebf"
+      "typeVersion": 1.1
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://api.firecrawl.dev/v1/map",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
+        "rule": {
+          "interval": [
             {
-              "name": "Content-Type",
-              "value": "application/json"
+              "field": "weeks"
             }
           ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"url\": \"{{ $json['Website Url'] }}\",\n  \"search\": \"about contact company authors team\",\n  \"limit\": {{ $json['Scrape Limit'] }}\n}",
-        "options": {}
+        }
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "id": "01a9499e-5fd7-47ca-934e-fd71eee8faa7",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
       "position": [
-        -1920,
-        20
+        -2220,
+        340
       ],
-      "id": "a7d1a38a-e6fc-494c-a166-37d9dc855fbb",
-      "name": "map_website",
-      "retryOnFail": true,
-      "maxTries": 5,
-      "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.firecrawl.dev/v1/batch/scrape",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"urls\": {{ JSON.stringify($json.links) }},\n  \"formats\": [\"markdown\", \"json\"],\n  \"proxy\": \"stealth\",\n  \"jsonOptions\": {\n    \"prompt\": \"Extract every unique, fully-qualified email address found in the supplied web page. Normalize common obfuscations where “@” appears as “(at)”, “[at]”, “{at}”, “ at ”, “&#64;” and “.” appears as “(dot)”, “[dot]”, “{dot}”, “ dot ”, “&#46;”. Convert variants such as “user(at)example(dot)com” or “user at example dot com” to “user@example.com”. Ignore addresses hidden inside HTML comments, <script>, or <style> blocks. Deduplicate case-insensitively. The addresses shown in the example output below (e.g., “user@example.com”, “info@example.com”, “support@sample.org”) are placeholders; include them only if they genuinely exist on the web page.\",\n    \"schema\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"email_addresses\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\",\n            \"format\": \"email\",\n            \"description\": \"A valid email address found and extracted from the page\"\n          },\n          \"description\": \"An array of all email addresses found on the web page\"\n        }\n      },\n      \"required\": [\"emails\"]\n    }\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -1660,
-        20
-      ],
-      "id": "78bb911f-f01c-4c76-80af-2a39bd887086",
-      "name": "start_batch_scrape"
+      "typeVersion": 1.2
     },
     {
       "parameters": {
         "conditions": {
           "options": {
-            "caseSensitive": true,
+            "version": 2,
             "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
+            "caseSensitive": false,
+            "typeValidation": "loose"
           },
+          "combinator": "and",
           "conditions": [
             {
-              "id": "7e16bcbe-7ea6-48ca-b98e-5b0ec18be8c3",
-              "leftValue": "={{ $runIndex }}",
-              "rightValue": 12,
+              "id": "538fc29d-2693-4c62-9848-bdcaf8566909",
               "operator": {
-                "type": "number",
-                "operation": "gte"
-              }
+                "type": "string",
+                "operation": "notEquals"
+              },
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "={{ $('Create new folder').item.json.id }}"
             }
-          ],
-          "combinator": "and"
+          ]
         },
-        "options": {}
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": true
+        }
       },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
+      "id": "24dbd9e9-5021-4547-b912-a5552bfbdd37",
+      "name": "Filter",
+      "type": "n8n-nodes-base.filter",
       "position": [
-        -580,
-        180
+        -900,
+        60
       ],
-      "id": "6530967a-f4a5-40c5-85db-8c64b0f23eed",
-      "name": "check_retry_count"
-    },
-    {
-      "parameters": {
-        "errorMessage": "Too many retries when attempting to scrape website."
-      },
-      "type": "n8n-nodes-base.stopAndError",
-      "typeVersion": 1,
-      "position": [
-        -220,
-        260
-      ],
-      "id": "4ca81c52-0c85-44db-90ca-860484364a17",
-      "name": "too_many_attempts_error"
+      "typeVersion": 2.2
     },
     {
       "parameters": {},
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
+      "id": "eec6759d-892a-4b52-96d5-df1204d40c39",
+      "name": "Manual trigger",
+      "type": "n8n-nodes-base.manualTrigger",
       "position": [
-        -1400,
-        20
+        -2220,
+        140
       ],
-      "id": "835e5477-9563-4636-a0a1-2d7783c27f66",
-      "name": "rate_limit_wait",
-      "webhookId": "3a93d231-a459-4747-b124-4229372407a8"
+      "typeVersion": 1
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "9efaad04-014a-45a4-9760-1b3edbf51c8d",
-              "name": "scraped_email_addresses",
-              "value": "={{\n  ($node[\"fetch_scrape_results\"].json.data || [])\n    .flatMap(item => item?.json?.email_addresses || [])\n    .filter(email => typeof email === 'string' && email.trim())\n}}",
-              "type": "array"
-            }
-          ]
-        },
         "options": {}
       },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "id": "f755e31e-529b-4541-902c-5a5e9374184d",
+      "name": "Loop ",
+      "type": "n8n-nodes-base.splitInBatches",
       "position": [
-        -220,
-        0
+        -1560,
+        260
       ],
-      "id": "905110db-beaf-43e1-9231-7ff07630f243",
-      "name": "set_result"
+      "typeVersion": 3
+    },
+    {
+      "parameters": {},
+      "id": "c9087da5-a3dd-4dc6-a81d-9f8432ecb899",
+      "name": "Limit",
+      "type": "n8n-nodes-base.limit",
+      "position": [
+        -1340,
+        60
+      ],
+      "typeVersion": 1
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "cc296f33-b896-49c7-898c-4d8b5f11266a",
-              "leftValue": "={{ $json.status }}",
-              "rightValue": "completed",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
+        "filters": {},
+        "requestOptions": {}
       },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
+      "id": "751c355e-678b-493a-ae06-e39dd0b06dae",
+      "name": "Get n8n workflow",
+      "type": "n8n-nodes-base.n8n",
       "position": [
-        -860,
-        20
+        -1780,
+        260
       ],
-      "id": "2fbe3727-5dbc-4dc7-acd3-aa4ea2b56017",
-      "name": "check_scrape_completed"
+      "retryOnFail": true,
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "n8nApi": {
+          "id": "5XHOo0XHlTPF4J0g",
+          "name": "n8n account"
+        }
+      }
     },
     {
       "parameters": {
-        "url": "=https://api.firecrawl.dev/v1/batch/scrape/{{ $('start_batch_scrape').item.json.id }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "options": {}
+        "content": "# 🔄 Workflow Backup for n8n → Google Drive\n\nAn automated system to back up all your n8n workflows and store them as `.json` files in Google Drive.  \nPerfect for creators, teams, and agencies who want to protect their work without manual effort.\n\n---\n\n## ✨ What this workflow does\n\n- Creates a new folder in Google Drive named `Workflow Backups [date]`\n- Fetches all workflows from your n8n instance via the `n8n API`\n- Converts each workflow into a `.json` file\n- Uploads the files to the created backup folder\n- (Optionally) Deletes old backup folders to keep things tidy\n- Can run manually or automatically (e.g., weekly)\n\n---\n\n## 🛠 Requirements\n\n- A Google account with access to Google Drive\n- Connected `Google Drive OAuth2` credentials in n8n\n- Active `n8n API credentials`\n- Enabled trigger: `Manual` or `Schedule`\n\n---\n\n## ⚙️ Installation Instructions\n\n1. **Import the workflow** (`Workflow_Backup_copy.json`) into your n8n instance\n2. **Set up credentials:**\n   - Replace `Google demo` with your own `Google Drive OAuth2` in the following nodes:\n     - `Create new folder`\n     - `Get folders`\n     - `Upload workflow`\n     - `delete folder`\n   - Replace `n8n demo` with your `n8n API` credentials in `Get n8n workflow`\n3. **Replace the folder ID** in the `Create new folder` node with the target backup folder on your Drive (`folderId`)\n4. **Optional:** Configure `Schedule Trigger` to run weekly or at your preferred interval\n\n---\n\n## 📦 Workflow Structure\n\n```\nManual/Schedule Trigger\n      ↓\nCreate new folder (Google Drive)\n      ↓\nGet n8n workflows (via API)\n      ↓\nLoop through workflows\n      ↓\nConvert to .json files\n      ↓\nUpload to Drive\n      ↓\n(Optional) Delete old backup folders\n```\n\n---\n\n## ✅ Tips\n\n- Add logic to retain only the latest X backups (e.g., last 3).\n- The workflow can run fully hands-free once scheduled.\n- Want to store files elsewhere? Swap out the upload node for Dropbox, S3, etc.\n",
+        "height": 1660,
+        "width": 1320,
+        "color": 4
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "id": "be113a2c-734e-4832-a2ea-e02786b0b08c",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1140,
-        20
+        -460,
+        -360
       ],
-      "id": "060f48bc-cf4b-4f35-826e-f9955cd6e8af",
-      "name": "fetch_scrape_results"
+      "typeVersion": 1
     },
     {
       "parameters": {
-        "fieldToSplitOut": "scraped_email_addresses",
-        "options": {}
+        "resource": "folder",
+        "operation": "copy",
+        "path": "/n8n_backup",
+        "toPath": "/n8n_backup_2"
       },
-      "type": "n8n-nodes-base.splitOut",
+      "type": "n8n-nodes-base.dropbox",
       "typeVersion": 1,
       "position": [
-        80,
-        0
+        -2020,
+        220
       ],
-      "id": "b509efe9-880f-4e1e-850d-6b1c2e00fdfa",
-      "name": "split_emails"
+      "id": "71731868-b91b-435e-8756-752254520791",
+      "name": "Dropbox",
+      "credentials": {
+        "dropboxApi": {
+          "id": "7S85Xl3wT16hm4L2",
+          "name": "Dropbox account"
+        }
+      }
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://api.instantly.ai/api/v2/leads",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "email",
-              "value": "={{ $json.scraped_email_addresses }}"
-            },
-            {
-              "name": "campaign",
-              "value": "4d1d4037-a7e0-4ee2-96c2-de223241a83c"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {
-              "fullResponse": true
-            }
-          }
-        }
+        "resource": "folder",
+        "operation": "list",
+        "path": "/n8n_backup",
+        "filters": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
       "position": [
-        380,
-        0
+        -1140,
+        60
       ],
-      "id": "5a139b08-cbf1-4a04-857f-e4650ce991a6",
-      "name": "create_lead"
+      "id": "3bf1469e-e8a6-490e-8658-6520dc330fd5",
+      "name": "Dropbox1",
+      "credentials": {
+        "dropboxApi": {
+          "id": "7S85Xl3wT16hm4L2",
+          "name": "Dropbox account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "/n8n_backup"
+      },
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        -1100,
+        240
+      ],
+      "id": "e1f065fa-7444-4097-bd8a-29df25ef014d",
+      "name": "Dropbox2",
+      "credentials": {
+        "dropboxApi": {
+          "id": "7S85Xl3wT16hm4L2",
+          "name": "Dropbox account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "operation": "delete",
+        "path": "/n8n/"
+      },
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        -680,
+        60
+      ],
+      "id": "ca4135d9-2cc3-4151-b929-f5513c67955e",
+      "name": "Dropbox3",
+      "credentials": {
+        "dropboxApi": {
+          "id": "7S85Xl3wT16hm4L2",
+          "name": "Dropbox account"
+        }
+      }
     }
   ],
   "connections": {
-    "form_trigger": {
+    "Limit": {
       "main": [
         [
           {
-            "node": "map_website",
+            "node": "Dropbox1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "map_website": {
+    "Loop ": {
       "main": [
         [
           {
-            "node": "start_batch_scrape",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "check_retry_count": {
-      "main": [
-        [
-          {
-            "node": "too_many_attempts_error",
+            "node": "Limit",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "rate_limit_wait",
+            "node": "Convert to File",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "rate_limit_wait": {
+    "Filter": {
       "main": [
         [
           {
-            "node": "fetch_scrape_results",
+            "node": "Dropbox3",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "start_batch_scrape": {
+    "Manual trigger": {
       "main": [
         [
           {
-            "node": "rate_limit_wait",
+            "node": "Dropbox",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "check_scrape_completed": {
+    "Convert to File": {
       "main": [
         [
           {
-            "node": "set_result",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "check_retry_count",
+            "node": "Dropbox2",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "fetch_scrape_results": {
+    "Get n8n workflow": {
       "main": [
         [
           {
-            "node": "check_scrape_completed",
+            "node": "Loop ",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "set_result": {
+    "Schedule Trigger": {
       "main": [
         [
           {
-            "node": "split_emails",
+            "node": "Dropbox",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "split_emails": {
+    "Dropbox": {
       "main": [
         [
           {
-            "node": "create_lead",
+            "node": "Get n8n workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dropbox1": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dropbox2": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
             "type": "main",
             "index": 0
           }
@@ -407,9 +359,11 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "4e1ac0fd-22fa-47d6-b29d-d6f190391df9",
+  "versionId": "9433cc92-57a3-4e9c-b331-f5508f1b418c",
   "triggerCount": 0,
   "tags": []
 }
