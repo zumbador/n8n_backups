@@ -1,596 +1,579 @@
 {
-  "createdAt": "2025-06-08T05:14:45.848Z",
-  "updatedAt": "2025-06-08T18:28:27.175Z",
-  "id": "hzDpHbgqt2SD7pEg",
-  "name": "Projects Agent",
+  "createdAt": "2025-06-05T22:59:24.209Z",
+  "updatedAt": "2025-06-08T04:27:06.281Z",
+  "id": "Q6jitHjFMTl2xpq6",
+  "name": "PDF Summary 1",
   "active": false,
   "isArchived": true,
   "nodes": [
     {
       "parameters": {
-        "public": true,
-        "initialMessages": "Hello! 👋 I'm your AI Assistant Router.\n\n## 🤖 Available Specialized Agents:\n🔬 **Research Agent** - Deep analysis, citations, fact-checking\n💻 **Code Agent** - Programming, debugging, technical solutions\n✍️ **Writing Agent** - Content creation, editing, storytelling\n📊 **Business Agent** - Strategy, analysis, productivity\n🎨 **Creative Agent** - Art concepts, brainstorming, innovation\n📚 **Education Agent** - Learning, explanations, tutoring\n\n## 🎯 How to Use:\n\n**Option 1 - Let me choose automatically:**\nJust ask your question naturally, and I'll route it to the best agent.\n\n**Option 2 - Choose an agent manually:**\n- `@research What are the latest AI developments?`\n- `@code Help me debug this Python function`\n- `@writing Create a blog post about productivity`\n- `@business Analyze our market strategy`\n- `@creative Brainstorm campaign ideas`\n- `@education Explain quantum physics simply`\n\n**Alternative manual formats:**\n- `contact research agent: your question`\n- `use code agent for: your question`\n\nWhat can I help you with today?",
-        "options": {
-          "allowFileUploads": true
-        }
-      },
-      "id": "66a6f78f-0a5b-4cac-85f7-d3ef4aa58dd8",
-      "name": "When chat message received",
-      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
-      "position": [
-        -820,
-        -40
-      ],
-      "webhookId": "specialized-ai-router",
-      "typeVersion": 1.1
-    },
-    {
-      "parameters": {
-        "schemaType": "manual",
-        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"agent_type\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"enum\": [\"research\", \"code\", \"writing\", \"business\", \"creative\", \"education\", \"general\"]\n\t\t},\n\t\t\"prompt\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n\t\t\"reasoning\": {\n\t\t\t\"type\": \"string\"\n\t\t}\n\t}\n}"
-      },
-      "id": "2ace1747-fced-46a3-8d4b-50d66381ad41",
-      "name": "Agent Selector Parser",
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "position": [
-        -320,
-        120
-      ],
-      "typeVersion": 1.2
-    },
-    {
-      "parameters": {
-        "content": "## 🎯 Specialized AI Agent Router\n\nThis workflow intelligently routes user queries to specialized AI agents based on the query's purpose and domain:\n\n**Available Agents:**\n- 🔬 Research Agent (facts, analysis, citations)\n- 💻 Code Agent (programming, debugging)\n- ✍️ Writing Agent (content, editing)\n- 📊 Business Agent (strategy, productivity)\n- 🎨 Creative Agent (brainstorming, art)\n- 📚 Education Agent (learning, tutoring)\n\nEach agent has specialized prompts, tools, and capabilities for optimal results.",
-        "height": 220,
-        "width": 900
-      },
-      "id": "52704f1f-0f70-487c-9d0c-29bf4a2fb124",
-      "name": "Workflow Description",
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -520,
-        -320
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "hasOutputParser": true,
-        "options": {
-          "systemMessage": "You are an **AI Agent Router** that handles both automatic routing and manual agent selection.\n\n## Available Specialized Agents:\n\n1. **research** - For factual research, data analysis, citations, academic queries, fact-checking\n2. **code** - For programming, debugging, technical documentation, software development\n3. **writing** - For content creation, editing, storytelling, copywriting, creative writing\n4. **business** - For business strategy, productivity, project management, market analysis\n5. **creative** - For brainstorming, art concepts, design thinking, innovation\n6. **education** - For learning, explanations, tutoring, curriculum development\n7. **general** - For simple queries that don't require specialization\n\n## Manual Agent Selection:\n\nCheck if the user is manually selecting an agent using these patterns:\n- \"@research [question]\"\n- \"@code [question]\"\n- \"@writing [question]\"\n- \"@business [question]\"\n- \"@creative [question]\"\n- \"@education [question]\"\n- \"@general [question]\"\n\nOR:\n- \"contact research agent: [question]\"\n- \"contact code agent: [question]\"\n- \"contact writing agent: [question]\"\n- \"contact business agent: [question]\"\n- \"contact creative agent: [question]\"\n- \"contact education agent: [question]\"\n- \"contact general agent: [question]\"\n\nOR:\n- \"use research agent for [question]\"\n- \"use code agent for [question]\"\n- \"use writing agent for [question]\"\n- \"use business agent for [question]\"\n- \"use creative agent for [question]\"\n- \"use education agent for [question]\"\n- \"use general agent for [question]\"\n\n## Processing Logic:\n\n1. **Manual Selection**: If user explicitly mentions an agent, extract the agent name and the actual question\n2. **Automatic Selection**: If no agent is specified, analyze the query and select the most appropriate agent\n\n## Automatic Analysis Criteria:\n\n**Research Agent** - Use when:\n- User asks for facts, statistics, or current information\n- Needs citations or sources\n- Requests analysis of data or trends\n- Academic or scientific queries\n\n**Code Agent** - Use when:\n- User asks about programming languages\n- Needs debugging help or code review\n- Requests technical documentation\n- Software architecture questions\n\n**Writing Agent** - Use when:\n- User needs content creation (articles, blogs, stories)\n- Requests editing or proofreading\n- Creative writing projects\n- Marketing copy or communications\n\n**Business Agent** - Use when:\n- User asks about business strategy\n- Needs productivity or workflow advice\n- Market analysis or competitive research\n- Project management guidance\n\n**Creative Agent** - Use when:\n- User needs brainstorming or ideation\n- Art or design concept development\n- Innovation or creative problem-solving\n- Visual or artistic projects\n\n**Education Agent** - Use when:\n- User needs learning assistance\n- Requests explanations of concepts\n- Tutoring or homework help\n- Curriculum or lesson planning\n\n## Output Format:\n\nRespond ONLY with a JSON object:\n\n```json\n{\n  \"agent_type\": \"selected_agent_name\",\n  \"prompt\": \"cleaned user query without agent selection syntax\",\n  \"reasoning\": \"brief explanation of selection (manual or automatic)\"\n}\n```"
-        }
-      },
-      "id": "10ae9130-60a4-44c0-98ce-1b8591eddb86",
-      "name": "AI Agent Router",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        -540,
-        -40
-      ],
-      "typeVersion": 1.9
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "claude-3-5-sonnet-20241022"
-        },
-        "options": {
-          "maxTokensToSample": 1024
-        }
-      },
-      "id": "c00b0af2-0b5a-4b51-b1c3-6339779c8b3b",
-      "name": "Router LLM",
-      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
-      "position": [
-        -600,
-        120
-      ],
-      "typeVersion": 1.3
-    },
-    {
-      "parameters": {
-        "rules": {
+        "formTitle": "Submit PDF",
+        "formDescription": "Submit pdf file",
+        "formFields": {
           "values": [
             {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict"
-                },
-                "conditions": [
-                  {
-                    "leftValue": "",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
+              "fieldLabel": "data",
+              "fieldType": "file"
             }
           ]
         },
         "options": {}
       },
-      "id": "53cae9b1-2f02-4338-aded-a4676e689086",
-      "name": "Agent Switch",
-      "type": "n8n-nodes-base.switch",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
       "position": [
-        -100,
-        -40
+        -3400,
+        780
       ],
-      "typeVersion": 3
+      "id": "1311badc-70c3-4ea2-be46-d40a29623a92",
+      "name": "On form submission",
+      "webhookId": "f766ed71-52de-4747-bf1e-2020cbe40928"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -3180,
+        860
+      ],
+      "id": "f81f5801-3488-4d7f-bc46-297ee344ed20",
+      "name": "Extract from File",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nconst fullText = input.json.text || '';\nconst binaryData = input.binary || {};\n\n// Find the binary property key (usually 'data')\nconst binaryKey = Object.keys(binaryData)[0];\n\n// Only proceed if binaryKey exists\nif (binaryKey && binaryData[binaryKey]) {\n  // Figure out the file name\n  const fileName =\n    input.json.fileName ||\n    input.json.originalFileName ||\n    'document.pdf';\n\n  // Attach the file name to the binary property\n  binaryData[binaryKey].fileName = fileName;\n}\n\n// Process text length\nlet processedText;\nif (fullText.length <= 8000) {\n  processedText = fullText;\n} else {\n  const start = fullText.substring(0, 4000);\n  const end = fullText.substring(fullText.length - 2000);\n  const middle = fullText.substring(\n    Math.floor(fullText.length / 2) - 1000,\n    Math.floor(fullText.length / 2) + 1000\n  );\n  processedText =\n    start +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    middle +\n    \"\\n\\n[... document continues ...]\\n\\n\" +\n    end;\n}\n\n// Now processedText is defined and can be used in the return\nreturn [\n  {\n    json: {\n      text: processedText,\n      needsCoverExtraction: true,\n      originalFileName: (binaryKey && binaryData[binaryKey] && binaryData[binaryKey].fileName) || 'document.pdf'\n    },\n    binary: binaryData\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2740,
+        780
+      ],
+      "id": "01dd1a31-52c3-4620-b180-ef3a9f9c9c5c",
+      "name": "Text Processing & Setup"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.urls[0] }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "file",
+              "outputPropertyName": "coverImage"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1860,
+        780
+      ],
+      "id": "16c56d04-55d4-45e7-8eb6-6917364f1bd2",
+      "name": "Download Cover Image"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the original text data from the Check Cover Extraction node\nconst originalData = $input.first().json;\nconst imageData = $input.last().binary?.coverImage;\n\nreturn [{\n  json: {\n    text: originalData.text,\n    hasCoverImage: !!imageData,\n    coverImageName: imageData ? 'cover-page.png' : null\n  },\n  binary: imageData ? {\n    coverImage: imageData\n  } : {}\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1640,
+        620
+      ],
+      "id": "8759933e-d11e-4e9f-bbe4-3d478b44a9d2",
+      "name": "Combine Text & Image"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are a **Research Specialist AI** with expertise in:\n\n🔬 **Core Capabilities:**\n- Factual research and verification\n- Data analysis and interpretation\n- Academic and scientific inquiry\n- Source citation and references\n- Trend analysis and insights\n\n📋 **Research Protocols:**\n- Always verify information through multiple sources when possible\n- Provide citations and references where available\n- Distinguish between facts, opinions, and speculation\n- Use web search for current information when needed\n- Present findings in structured, analytical format\n\n🎯 **Specialized Tools:**\n- Web search for current data\n- Calculator for statistical analysis\n- Think tool for complex reasoning\n\n**Instructions:** Provide thorough, well-researched responses with proper attribution and evidence-based conclusions."
-        }
+        "text": "=Here is the PDF content: {{ $json.text }}\n\nPlease analyze this document and return **exactly** the following, with no extra commentary:\n\nTITLE: [Document title]\n\nYEAR: [Publication year]\n\nAUTHOR: [Author name(s)]\n\nPAGES: [Total page count]\n\nOVERVIEW (50 words):  \n[Write a 50-word overview of the document.]\n\nSUMMARY (300 words):  \n[Write a 300-word summary targeting \"White paper\" and the document title.]\n\nMETA DESCRIPTION (160 chars max):  \n[Write a meta description, no more than 160 characters.]\nDescribe your new note here.\n\nReview 1 (50 - 100 words):\n[Write a 150-word posotive review of the document.]",
+        "options": {}
       },
-      "id": "aa88b4da-9594-4956-92be-02c7570e4a86",
-      "name": "🔬 Research Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
       "position": [
-        500,
-        -40
+        -1420,
+        520
       ],
-      "typeVersion": 1.9
+      "id": "a1c35ffd-7bee-42d4-a617-b7f957cf9c8f",
+      "name": "AI Agent",
+      "alwaysOutputData": true
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are a **Code Specialist AI** with expertise in:\n\n💻 **Programming Capabilities:**\n- Multi-language programming (Python, JavaScript, Java, C++, etc.)\n- Code debugging and optimization\n- Software architecture and design patterns\n- API development and integration\n- Database design and queries\n\n🛠️ **Development Focus:**\n- Write clean, efficient, well-documented code\n- Provide step-by-step debugging guidance\n- Explain complex technical concepts clearly\n- Follow industry best practices and standards\n- Offer multiple solution approaches when applicable\n\n🎯 **Code Standards:**\n- Include proper error handling\n- Add meaningful comments and documentation\n- Consider security and performance implications\n- Provide testing suggestions when relevant\n\n**Instructions:** Deliver practical, production-ready code solutions with clear explanations and best practices."
-        }
+        "jsCode": "const input = $input.first();\nlet text = input.json.output || '';\n\n// Extract title from the AI output\nconst titleMatch = text.match(/TITLE: (.+)/);\nconst aiTitle = titleMatch ? titleMatch[1].trim() : 'Untitled';\n\n// Split text into chunks that fit Notion's 2000 char limit\nconst chunks = [];\nlet remainingText = text;\n\nwhile (remainingText.length > 0) {\n  let chunk = remainingText.substring(0, 1900);\n\n  // If there's more text, try to break at a natural point\n  if (remainingText.length > 1900) {\n    const lastPeriod = chunk.lastIndexOf('. ');\n    const lastNewline = chunk.lastIndexOf('\\n');\n\n    if (lastPeriod > 1200) {\n      chunk = chunk.substring(0, lastPeriod + 1);\n    } else if (lastNewline > 1200) {\n      chunk = chunk.substring(0, lastNewline);\n    }\n  }\n\n  chunks.push(chunk.trim());\n  remainingText = remainingText.substring(chunk.length).trim();\n}\n\n// Return all original data plus split blocks, extracted title, and coverImageFileName\nreturn [{\n  json: {\n    ...input.json,\n    aiTitle: aiTitle,\n    block1: chunks[0] || '',\n    block2: chunks[1] || '',\n    block3: chunks[2] || '',\n    coverImageFileName: input.json.coverImageFileName // <-- Make sure this line is here!\n  },\n  binary: input.binary || {}\n}];\n"
       },
-      "id": "1597092a-f77d-43bb-b90d-91cb1f22603d",
-      "name": "💻 Code Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -860,
-        340
+        -1060,
+        620
       ],
-      "typeVersion": 1.9
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are a **Writing Specialist AI** with expertise in:\n\n✍️ **Writing Capabilities:**\n- Content creation (articles, blogs, copy)\n- Creative writing (stories, scripts, poetry)\n- Technical writing and documentation\n- Editing and proofreading\n- Communication and messaging\n\n📝 **Writing Standards:**\n- Adapt tone and style to target audience\n- Ensure clarity, coherence, and engagement\n- Follow proper grammar and style guidelines\n- Structure content for maximum impact\n- Optimize for specific platforms when needed\n\n🎨 **Creative Approach:**\n- Develop compelling narratives and storylines\n- Create memorable characters and dialogue\n- Use literary devices effectively\n- Balance creativity with purpose\n- Consider emotional impact and reader experience\n\n**Instructions:** Create compelling, well-structured content that engages the target audience and achieves the intended purpose."
-        }
-      },
-      "id": "06930839-c968-4321-afd4-ec201e6c80ce",
-      "name": "✍️ Writing Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        -860,
-        540
-      ],
-      "typeVersion": 1.9
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are a **Business Specialist AI** with expertise in:\n\n📊 **Business Capabilities:**\n- Strategic planning and analysis\n- Market research and competitive analysis\n- Productivity and workflow optimization\n- Project management and operations\n- Financial analysis and budgeting\n\n💼 **Business Focus:**\n- Provide actionable business insights\n- Consider ROI and business impact\n- Suggest practical implementation steps\n- Analyze risks and opportunities\n- Align solutions with business objectives\n\n🎯 **Strategic Approach:**\n- Think holistically about business challenges\n- Consider stakeholder perspectives\n- Provide data-driven recommendations\n- Account for resource constraints\n- Focus on measurable outcomes\n\n**Instructions:** Deliver strategic, practical business advice that drives results and creates value for the organization."
-        }
-      },
-      "id": "3f9b2916-3831-45b8-bab2-b804b99ffe03",
-      "name": "📊 Business Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        -860,
-        740
-      ],
-      "typeVersion": 1.9
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are a **Creative Specialist AI** with expertise in:\n\n🎨 **Creative Capabilities:**\n- Brainstorming and ideation\n- Design thinking and innovation\n- Art and visual concepts\n- Creative problem-solving\n- Brand and identity development\n\n💡 **Creative Process:**\n- Generate diverse, original ideas\n- Think outside conventional boundaries\n- Combine concepts in novel ways\n- Consider aesthetic and emotional impact\n- Iterate and refine creative concepts\n\n🌟 **Innovation Focus:**\n- Challenge assumptions and norms\n- Explore unconventional approaches\n- Balance creativity with feasibility\n- Consider user experience and engagement\n- Inspire and motivate through creativity\n\n**Instructions:** Generate innovative, inspiring creative solutions that push boundaries while remaining practical and purposeful."
-        }
-      },
-      "id": "f048fa43-72cc-425c-920d-402f6e96a6c1",
-      "name": "🎨 Creative Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        -860,
-        940
-      ],
-      "typeVersion": 1.9
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are an **Education Specialist AI** with expertise in:\n\n📚 **Educational Capabilities:**\n- Learning and skill development\n- Concept explanation and clarification\n- Curriculum design and lesson planning\n- Assessment and feedback\n- Personalized learning approaches\n\n🎓 **Teaching Methods:**\n- Adapt explanations to learning level\n- Use examples and analogies effectively\n- Break complex topics into digestible parts\n- Encourage active learning and engagement\n- Provide practice opportunities and feedback\n\n🌱 **Learning Focus:**\n- Foster understanding over memorization\n- Build connections between concepts\n- Encourage critical thinking skills\n- Support different learning styles\n- Promote lifelong learning habits\n\n**Instructions:** Provide clear, engaging educational content that promotes deep understanding and effective learning outcomes."
-        }
-      },
-      "id": "2c44c9a2-52db-44f0-b85b-99b48529955d",
-      "name": "📚 Education Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        -860,
-        1160
-      ],
-      "typeVersion": 1.9
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.output.prompt }}",
-        "options": {
-          "systemMessage": "You are a **General Purpose AI Assistant** designed to handle diverse queries with:\n\n🤖 **General Capabilities:**\n- Comprehensive knowledge across domains\n- Balanced approach to problem-solving\n- Clear and helpful communication\n- Adaptable to various contexts\n\n**Instructions:** Provide helpful, accurate responses while maintaining a friendly and professional tone."
-        }
-      },
-      "id": "c10b8a6a-6ad9-4bb9-9470-e03df046c21a",
-      "name": "🤖 General Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        -860,
-        1360
-      ],
-      "typeVersion": 1.9
+      "id": "2a77417a-46b5-40d6-afb9-111492757484",
+      "name": "Process AI Output"
     },
     {
       "parameters": {
         "model": {
           "__rl": true,
+          "value": "claude-opus-4-20250514",
           "mode": "list",
-          "value": "claude-3-5-sonnet-20241022"
+          "cachedResultName": "Claude Opus 4"
         },
         "options": {}
       },
-      "id": "b42ef627-6f52-4037-8424-3a3151f74107",
-      "name": "Agent LLM",
       "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
       "position": [
-        300,
-        140
+        -1360,
+        740
       ],
-      "typeVersion": 1.3
+      "id": "dea73bdc-1a15-40a2-8d47-72dfb3aed774",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "l8nsyOPKZPhdPs1R",
+          "name": "Anthropic account"
+        }
+      }
     },
     {
       "parameters": {
-        "sessionIdType": "customKey",
-        "sessionKey": "={{ $('When chat message received').item.json.sessionId }}"
-      },
-      "id": "05a72036-3a91-4bf5-9959-20ffcc80b07a",
-      "name": "Conversation Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
-      "position": [
-        300,
-        320
-      ],
-      "typeVersion": 1.3
-    },
-    {
-      "parameters": {},
-      "id": "f48eb115-c655-4245-b3c1-de5ea411a576",
-      "name": "Think",
-      "type": "@n8n/n8n-nodes-langchain.toolThink",
-      "position": [
-        300,
-        540
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {},
-      "id": "41e8fdc3-d0aa-4e63-8ad2-287944ecd594",
-      "name": "Calculator",
-      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
-      "position": [
-        300,
-        720
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "toolDescription": "Search the web for current information and facts",
         "method": "POST",
-        "url": "https://api.anthropic.com/v1/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "anthropicApi",
+        "url": "https://api.pdf.co/v1/file/upload/base64",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
-              "name": "anthropic-version",
-              "value": "2023-06-01"
+              "name": "x-api-key",
+              "value": "=bright@zumbador.com_YOhLhWaPTC9iNLyMEqLxj36vozhJA8LUQy5a0QXlKjBhdZdDEA95w61lILhWIWsl"
             },
             {
-              "name": "content-type",
+              "name": "Content-Type",
               "value": "application/json"
             }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 1024,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{web_search_query}\"\n    }\n  ],\n  \"tools\": [\n    {\n      \"type\": \"web_search_20250305\",\n      \"name\": \"web_search\",\n      \"max_uses\": 5\n    }\n  ]\n}",
+        "jsonBody": "={{$json}}",
         "options": {}
       },
-      "id": "f91312a8-f907-4afa-9810-211788b65781",
-      "name": "Web Search",
-      "type": "n8n-nodes-base.httpRequestTool",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
-        300,
+        -2300,
+        780
+      ],
+      "id": "8429e8bc-a2dd-417b-986e-2c47e7573b8d",
+      "name": "Upload PDF to PDF.co1",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "K1q8u1aqz0KKzpwN",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdf.co/v1/pdf/convert/to/png",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "bright@zumbador.com_YOhLhWaPTC9iNLyMEqLxj36vozhJA8LUQy5a0QXlKjBhdZdDEA95w61lILhWIWsl"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.url }}\",\n  \"pages\": \"\",\n  \"inline\": true,\n  \"async\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2080,
+        780
+      ],
+      "id": "e8d37dfc-e33e-4b27-a206-3821eb4d53b6",
+      "name": "PDF to PNG conversion"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2960,
+        780
+      ],
+      "id": "e4dd01a2-4ca5-4886-b8d0-eb4558afdc8f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const binaryData = $input.first().binary.data;\nconst fileName = binaryData.fileName || 'document.pdf';\nconst buffer = await this.helpers.getBinaryDataBuffer(0, 'data');\nconst fileBase64 = buffer.toString('base64');\nreturn [{\n  json: {\n    file: `data:application/pdf;base64,${fileBase64}`,\n    name: fileName\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2520,
+        780
+      ],
+      "id": "8ec84946-5471-4b78-9e33-0d66e2713fe6",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "xaraban",
+        "fileName": "=ban/pdf_summary/{{ $json.coverImageFileName }}",
+        "binaryPropertyName": "coverImage",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        -1360,
         920
       ],
-      "typeVersion": 4.2
+      "id": "09a11766-7ce3-4ec9-b677-0de1a8831ca3",
+      "name": "AWS S3",
+      "credentials": {
+        "aws": {
+          "id": "1EzY6RGV9x9KCtu0",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -840,
+        780
+      ],
+      "id": "b38655bc-f57e-4416-bfe1-06b8783054a6",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nconst fileName =\n  input.binary &&\n  input.binary.coverImage &&\n  input.binary.coverImage.fileName\n    ? input.binary.coverImage.fileName\n    : 'default.png';\n\nreturn [{\n  json: {\n    ...input.json,\n    coverImageFileName: fileName\n  },\n  binary: input.binary\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1640,
+        920
+      ],
+      "id": "d0df7639-f378-4d0f-9714-d43cf708589c",
+      "name": "Add File name to JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nconst key = input.json.Key || 'default.png'; // S3 node outputs the file path in \"Key\"\nreturn [{\n  json: {\n    ...input.json,\n    s3Url: `https://xaraban.s3.amazonaws.com/${key}`\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1060,
+        920
+      ],
+      "id": "ef699ec5-a1a4-4b43-8577-3f761f4d44ae",
+      "name": "Add s3Url to JSON"
+    },
+    {
+      "parameters": {
+        "pageId": {
+          "__rl": true,
+          "value": "https://www.notion.so/PDF-Summary-2007112e57b980d8b998e19f93512ba1",
+          "mode": "url"
+        },
+        "title": "={{ $json.aiTitle }}",
+        "blockUi": {
+          "blockValues": [
+            {
+              "type": "=paragraph",
+              "textContent": "=={{ $json.block1 }}"
+            },
+            {
+              "type": "=paragraph",
+              "textContent": "=={{ $json.block2 }}"
+            },
+            {
+              "richText": "={{ false }}",
+              "textContent": "=={{ $json.block3 }}"
+            },
+            {
+              "type": "=paragraph",
+              "richText": "={{ false }}",
+              "textContent": "={{ $json.s3Url }}"
+            },
+            {
+              "textContent": "={\n  \"type\": \"image\",\n  \"image\": {\n    \"type\": \"external\",\n    \"external\": {\n      \"url\": \"{{ $json.s3Url }}\"\n    }\n  }\n}\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -580,
+        40
+      ],
+      "id": "4e77f9aa-1d26-4159-982c-16e3ecb38a87",
+      "name": "Notion_good",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "pageId": {
+          "__rl": true,
+          "value": "https://www.notion.so/PDF-Summary-2007112e57b980d8b998e19f93512ba1",
+          "mode": "url"
+        },
+        "title": "={{ $json.aiTitle }}",
+        "blockUi": {
+          "blockValues": [
+            {
+              "textContent": "={{ $json.block1 }}"
+            },
+            {
+              "textContent": "={{ $json.block2 }}"
+            },
+            {
+              "textContent": "={{ $json.block3 }}"
+            },
+            {
+              "textContent": "={{ $json.s3Url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -500,
+        760
+      ],
+      "id": "cfc35036-10f1-46c6-9bac-863c5574c413",
+      "name": "Notion_good_urlonly",
+      "credentials": {
+        "notionApi": {
+          "id": "wv5ZmtxyRwkU0dXZ",
+          "name": "Notion account"
+        }
+      }
     }
   ],
   "connections": {
-    "When chat message received": {
+    "On form submission": {
       "main": [
         [
           {
-            "node": "AI Agent Router",
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract from File",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Agent Selector Parser": {
-      "ai_outputParser": [
+    "Extract from File": {
+      "main": [
         [
           {
-            "node": "AI Agent Router",
-            "type": "ai_outputParser",
-            "index": 0
+            "node": "Merge",
+            "type": "main",
+            "index": 1
           }
         ]
       ]
     },
-    "AI Agent Router": {
+    "Text Processing & Setup": {
       "main": [
         [
           {
-            "node": "Agent Switch",
+            "node": "Code",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Router LLM": {
+    "Download Cover Image": {
+      "main": [
+        [
+          {
+            "node": "Combine Text & Image",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add File name to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Text & Image": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Process AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process AI Output": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent Router",
+            "node": "AI Agent",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Agent Switch": {
+    "Upload PDF to PDF.co1": {
       "main": [
         [
           {
-            "node": "🔬 Research Agent",
+            "node": "PDF to PNG conversion",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Agent LLM": {
-      "ai_languageModel": [
+    "PDF to PNG conversion": {
+      "main": [
         [
           {
-            "node": "🔬 Research Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "💻 Code Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "✍️ Writing Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "📊 Business Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "🎨 Creative Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "📚 Education Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          },
-          {
-            "node": "🤖 General Agent",
-            "type": "ai_languageModel",
+            "node": "Download Cover Image",
+            "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Conversation Memory": {
-      "ai_memory": [
+    "Merge": {
+      "main": [
         [
           {
-            "node": "🔬 Research Agent",
-            "type": "ai_memory",
-            "index": 0
-          },
-          {
-            "node": "💻 Code Agent",
-            "type": "ai_memory",
-            "index": 0
-          },
-          {
-            "node": "✍️ Writing Agent",
-            "type": "ai_memory",
-            "index": 0
-          },
-          {
-            "node": "📊 Business Agent",
-            "type": "ai_memory",
-            "index": 0
-          },
-          {
-            "node": "🎨 Creative Agent",
-            "type": "ai_memory",
-            "index": 0
-          },
-          {
-            "node": "📚 Education Agent",
-            "type": "ai_memory",
-            "index": 0
-          },
-          {
-            "node": "🤖 General Agent",
-            "type": "ai_memory",
+            "node": "Text Processing & Setup",
+            "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Think": {
-      "ai_tool": [
+    "Code": {
+      "main": [
         [
           {
-            "node": "🔬 Research Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "💻 Code Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "✍️ Writing Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "📊 Business Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "🎨 Creative Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "📚 Education Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "🤖 General Agent",
-            "type": "ai_tool",
+            "node": "Upload PDF to PDF.co1",
+            "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Calculator": {
-      "ai_tool": [
+    "AWS S3": {
+      "main": [
         [
           {
-            "node": "🔬 Research Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "💻 Code Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "✍️ Writing Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "📊 Business Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "🎨 Creative Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "📚 Education Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "🤖 General Agent",
-            "type": "ai_tool",
+            "node": "Add s3Url to JSON",
+            "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Web Search": {
-      "ai_tool": [
+    "Merge1": {
+      "main": [
         [
           {
-            "node": "🔬 Research Agent",
-            "type": "ai_tool",
+            "node": "Notion_good_urlonly",
+            "type": "main",
             "index": 0
-          },
+          }
+        ]
+      ]
+    },
+    "Add File name to JSON": {
+      "main": [
+        [
           {
-            "node": "💻 Code Agent",
-            "type": "ai_tool",
+            "node": "AWS S3",
+            "type": "main",
             "index": 0
-          },
+          }
+        ]
+      ]
+    },
+    "Add s3Url to JSON": {
+      "main": [
+        [
           {
-            "node": "✍️ Writing Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "📊 Business Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "🎨 Creative Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "📚 Education Agent",
-            "type": "ai_tool",
-            "index": 0
-          },
-          {
-            "node": "🤖 General Agent",
-            "type": "ai_tool",
-            "index": 0
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
           }
         ]
       ]
@@ -604,7 +587,7 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "b6baefbc-0ad3-4fe6-ba6b-cf09f0d59a08",
+  "versionId": "27346832-ec11-460d-8926-ef815200efe7",
   "triggerCount": 0,
   "tags": []
 }
