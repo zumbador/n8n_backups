@@ -1,11 +1,457 @@
 {
-  "createdAt": "2025-06-11T22:46:42.915Z",
-  "updatedAt": "2025-06-11T22:47:11.509Z",
-  "id": "TwJhLyxHL1QYvM74",
-  "name": "Chat bot",
+  "createdAt": "2025-06-11T21:07:49.811Z",
+  "updatedAt": "2025-06-12T11:40:48.046Z",
+  "id": "3SWkU5PfqjCAKxgO",
+  "name": "Publish Article to Joomla",
   "active": false,
   "isArchived": false,
   "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Combine all AI research results into a structured format\nconst trendsData = $('AI Trends Research (GPT-4 with Web)').item.json;\nconst expertData = $('AI Expert Analysis (Claude with Web)').item.json;\nconst practicesData = $('AI Best Practices Research Anthropic').item.json;\n\n// Extract content from different AI responses\nlet trendsContent = '';\nlet expertContent = '';\nlet practicesContent = '';\n\n// Handle GPT-4 response\nif (trendsData && trendsData.choices && trendsData.choices[0]) {\n  trendsContent = trendsData.choices[0].message.content;\n} else if (trendsData && trendsData.message) {\n  trendsContent = trendsData.message.content;\n}\n\n// Handle Claude response\nif (expertData && expertData.content) {\n  expertContent = expertData.content;\n} else if (expertData && expertData.message) {\n  expertContent = expertData.message.content;\n}\n\n// Handle Perplexity response\nif (practicesData && practicesData.choices && practicesData.choices[0]) {\n  practicesContent = practicesData.choices[0].message.content;\n} else if (practicesData && practicesData.message) {\n  practicesContent = practicesData.message.content;\n}\n\n// Combine all research into a comprehensive summary\nconst combinedResearch = `\n=== TRENDS AND DEVELOPMENTS RESEARCH ===\n${trendsContent}\n\n=== EXPERT ANALYSIS AND INSIGHTS ===\n${expertContent}\n\n=== BEST PRACTICES AND IMPLEMENTATION GUIDES ===\n${practicesContent}\n`;\n\nreturn {\n  combined_research: combinedResearch,\n  trends_research: trendsContent,\n  expert_analysis: expertContent,\n  best_practices: practicesContent,\n  topic: $('Manual Trigger').item.json.topic,\n  research_sections: 3,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "0250823d-5d3d-4b17-990a-e5406cc0dce2",
+      "name": "Combine AI Research",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4260,
+        920
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format the article content for Joomla with enhanced processing\nconst article = $('Generate Comprehensive Article').item.json.message.content;\nconst seoDataRaw = $json.message.content;\nconst originalTopic = $('Combine AI Research').item.json.topic;\n\n// Parse SEO data (handle potential JSON parsing issues)\nlet seoData;\ntry {\n  seoData = JSON.parse(seoDataRaw);\n} catch (e) {\n  // Fallback if JSON parsing fails\n  seoData = {\n    seo_title: originalTopic,\n    social_title: originalTopic,\n    meta_description: `Comprehensive guide to ${originalTopic}`,\n    tags: [originalTopic.split(' ')[0], originalTopic.split(' ')[1] || 'guide'],\n    alias: originalTopic.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-'),\n    excerpt: `Learn everything about ${originalTopic} in this comprehensive guide.`\n  };\n}\n\n// Enhanced content formatting for Joomla\nlet formattedContent = article\n  // Convert markdown headers to HTML\n  .replace(/^### (.*$)/gm, '<h4>$1</h4>')\n  .replace(/^## (.*$)/gm, '<h3>$1</h3>')\n  .replace(/^# (.*$)/gm, '<h2>$1</h2>')\n  // Convert bold text\n  .replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>')\n  // Convert italic text\n  .replace(/\\*(.*?)\\*/g, '<em>$1</em>')\n  // Convert bullet points to HTML lists\n  .replace(/^- (.*$)/gm, '<li>$1</li>')\n  // Wrap consecutive list items in <ul> tags\n  .replace(/(<li>.*<\\/li>)(\\s*<li>.*<\\/li>)*/gs, '<ul>$&</ul>')\n  // Convert paragraphs\n  .replace(/\\n\\n+/g, '</p>\\n\\n<p>')\n  .replace(/\\n/g, '<br>')\n  .replace(/^/, '<p>')\n  .replace(/$/, '</p>');\n\n// Clean up formatting issues\nformattedContent = formattedContent\n  .replace(/<p><h([1-6])>/g, '<h$1>')\n  .replace(/<\\/h([1-6])><\\/p>/g, '</h$1>')\n  .replace(/<p><ul>/g, '<ul>')\n  .replace(/<\\/ul><\\/p>/g, '</ul>')\n  .replace(/<p><\\/p>/g, '')\n  .replace(/<p>\\s*<br>/g, '<p>')\n  .replace(/<br>\\s*<\\/p>/g, '</p>')\n  .replace(/<br>\\s*<h([1-6])>/g, '<h$1>')\n  .replace(/<\\/h([1-6])>\\s*<br>/g, '</h$1>');\n\n// Create introtext (first paragraph or first 300 characters)\nlet introText = formattedContent.match(/<p>(.*?)<\\/p>/)?.[1] || formattedContent.substring(0, 300);\nif (introText.length > 300) {\n  introText = introText.substring(0, 297) + '...';\n}\n\n// Generate current timestamp for created date\nconst now = new Date();\nconst mysqlDateTime = now.toISOString().slice(0, 19).replace('T', ' ');\n\nreturn {\n  title: seoData.seo_title,\n  alias: seoData.alias,\n  introtext: introText,\n  fulltext: formattedContent,\n  metadesc: seoData.meta_description,\n  metakey: Array.isArray(seoData.tags) ? seoData.tags.join(', ') : seoData.tags,\n  state: 1, // Published\n  catid: $('Manual Trigger').item.json.categoryId || 2,\n  created_by: $('Manual Trigger').item.json.authorId || 1,\n  language: '*',\n  access: 1,\n  featured: $('Manual Trigger').item.json.featured || 0,\n  created: mysqlDateTime,\n  publish_up: mysqlDateTime,\n  originalTopic: originalTopic,\n  socialTitle: seoData.social_title,\n  excerpt: seoData.excerpt,\n  wordCount: article.split(' ').length,\n  researched_by: 'AI Agents (GPT-4, Claude, Perplexity)'\n};"
+      },
+      "id": "5d513416-a1e9-480b-a572-74ca605c6740",
+      "name": "Format Content for Joomla",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1440,
+        920
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://businessaviation.aero/api/index.php/v1/content/articles",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.api+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "={{ $json.title }}"
+            },
+            {
+              "name": "alias",
+              "value": "={{ $json.alias }}"
+            },
+            {
+              "name": "introtext",
+              "value": "={{ $json.introtext }}"
+            },
+            {
+              "name": "fulltext",
+              "value": "={{ $json.fulltext }}"
+            },
+            {
+              "name": "state",
+              "value": "={{ $json.state }}"
+            },
+            {
+              "name": "catid",
+              "value": "={{ $json.catid }}"
+            },
+            {
+              "name": "created_by",
+              "value": "={{ $json.created_by }}"
+            },
+            {
+              "name": "language",
+              "value": "={{ $json.language }}"
+            },
+            {
+              "name": "access",
+              "value": "={{ $json.access }}"
+            },
+            {
+              "name": "featured",
+              "value": "={{ $json.featured }}"
+            },
+            {
+              "name": "metadesc",
+              "value": "={{ $json.metadesc }}"
+            },
+            {
+              "name": "metakey",
+              "value": "={{ $json.metakey }}"
+            },
+            {
+              "name": "created",
+              "value": "={{ $json.created }}"
+            },
+            {
+              "name": "publish_up",
+              "value": "={{ $json.publish_up }}"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {
+              "maxRedirects": 3
+            }
+          },
+          "timeout": 45000
+        }
+      },
+      "id": "8f6adc03-c736-41c6-af80-276e41c69657",
+      "name": "Publish to Joomla (API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1240,
+        880
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "3MTb1R46dZOzkgip",
+          "name": "Admin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare comprehensive workflow execution summary\nconst joomlaResponse = $('Publish to Joomla (API)').item.json;\nconst articleData = $('Format Content for Joomla').item.json;\nconst researchData = $('Combine AI Research').item.json;\n\n// Determine success status\nlet success = false;\nlet message = '';\nlet articleId = null;\nlet articleUrl = '';\n\nconst statusCode = $('Publish to Joomla (API)').item.statusCode;\n\nif (statusCode >= 200 && statusCode < 300) {\n  success = true;\n  message = 'Article successfully researched by AI agents and published to Joomla!';\n  \n  // Try to extract article ID from response\n  if (joomlaResponse && joomlaResponse.data && joomlaResponse.data.id) {\n    articleId = joomlaResponse.data.id;\n  } else if (joomlaResponse && joomlaResponse.id) {\n    articleId = joomlaResponse.id;\n  }\n  \n  // Construct article URL if we have the ID\n  if (articleId) {\n    const baseUrl = $('Manual Trigger').item.json.joomlaUrl;\n    articleUrl = `${baseUrl}/${articleData.alias || articleId}`;\n  }\n} else {\n  message = `Failed to publish to Joomla. Status: ${statusCode}. Check your Joomla API credentials and URL.`;\n}\n\n// Calculate research quality metrics\nconst researchQuality = {\n  sections_researched: researchData.research_sections || 0,\n  trends_data_length: researchData.trends_research ? researchData.trends_research.length : 0,\n  expert_analysis_length: researchData.expert_analysis ? researchData.expert_analysis.length : 0,\n  best_practices_length: researchData.best_practices ? researchData.best_practices.length : 0\n};\n\nreturn {\n  success: success,\n  message: message,\n  execution_summary: {\n    article_title: articleData.title,\n    article_alias: articleData.alias,\n    article_id: articleId,\n    article_url: articleUrl,\n    word_count: articleData.wordCount,\n    original_topic: articleData.originalTopic,\n    published_at: new Date().toISOString(),\n    research_method: articleData.researched_by,\n    category_id: articleData.catid,\n    author_id: articleData.created_by,\n    seo_title: articleData.title,\n    meta_description: articleData.metadesc,\n    tags: articleData.metakey\n  },\n  research_quality: researchQuality,\n  ai_agents_used: [\n    'GPT-4 with Web Search (Trends Research)',\n    'Claude with Web Search (Expert Analysis)', \n    'Perplexity AI (Best Practices Research)'\n  ],\n  joomla_response: joomlaResponse,\n  status_code: statusCode,\n  workflow_duration: 'Completed',\n  next_steps: success ? [\n    'Review published article for accuracy',\n    'Share on social media platforms',\n    'Monitor article performance',\n    'Consider follow-up articles on related topics'\n  ] : [\n    'Check Joomla API credentials',\n    'Verify Joomla URL and API endpoint',\n    'Review article content for any formatting issues',\n    'Retry publication after fixing issues'\n  ]\n};"
+      },
+      "id": "dcf420b6-f33a-4748-b826-a276ba64927b",
+      "name": "Comprehensive Workflow Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1000,
+        920
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -4640,
+        420
+      ],
+      "id": "35caee3b-dda0-447f-9000-7514d0bf8bbc",
+      "name": "AI Trends Research (GPT-4 with Web)"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -4560,
+        640
+      ],
+      "id": "c5eef298-ab2e-4d0c-b070-7e1914fdb189",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-20250514",
+          "cachedResultName": "Claude 4 Sonnet"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -4560,
+        1040
+      ],
+      "id": "5fa6db25-9458-43d0-8678-605fa02b5990",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "l8nsyOPKZPhdPs1R",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -4640,
+        820
+      ],
+      "id": "d391edf2-84d0-488b-9126-120019319546",
+      "name": "AI Best Practices Research Anthropic"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -4560,
+        1540
+      ],
+      "id": "84fbcac7-c963-4679-930f-8106d0849135",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "98JqTQmfb8tBNsCz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -4640,
+        1320
+      ],
+      "id": "47d62531-989f-41d2-b339-b2b7f2fee1db",
+      "name": "AI Expert Analysis Gemini"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -4040,
+        920
+      ],
+      "id": "b58c67cc-2431-4566-9651-8a9260df1a0f",
+      "name": "Generate Comprehensive Article"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-20250514",
+          "cachedResultName": "Claude 4 Sonnet"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -3960,
+        1140
+      ],
+      "id": "29a340c2-718b-4399-bebc-62abaaffb129",
+      "name": "Anthropic Chat Model1",
+      "credentials": {
+        "anthropicApi": {
+          "id": "l8nsyOPKZPhdPs1R",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -3660,
+        920
+      ],
+      "id": "6f5dfac8-b8cf-40a3-b580-9945b549cb76",
+      "name": "Hallucination/Fact check"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -3580,
+        1140
+      ],
+      "id": "9feb3204-f0c1-4e52-89a0-a61fd7f4ff8c",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "98JqTQmfb8tBNsCz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -3300,
+        920
+      ],
+      "id": "4007d0a3-adb8-429d-b0b6-973adf09be60",
+      "name": "SEO Meta data"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -3200,
+        1140
+      ],
+      "id": "00692f24-3c71-4190-a0e6-45c1bfdc660d",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "98JqTQmfb8tBNsCz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -2480,
+        1040
+      ],
+      "id": "6e5905a7-c70c-4f7b-b32c-646f5b80a312",
+      "name": "Gemini Vision"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2380,
+        1260
+      ],
+      "id": "4a775931-0b7a-49bf-bae3-f8978ff38843",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "98JqTQmfb8tBNsCz",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2920,
+        920
+      ],
+      "id": "0b617319-9988-4dd1-aec4-36063f9fe304",
+      "name": "Extract H2,s"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1660,
+        920
+      ],
+      "id": "4aba7b1e-1ac7-4b48-b9d0-d9d87eded24f",
+      "name": "Inject <figure> markup"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1880,
+        920
+      ],
+      "id": "1a757233-12a6-4164-bef9-9421379027e0",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2100,
+        1040
+      ],
+      "id": "85724f44-a098-43aa-b760-0103563578e3",
+      "name": "Upload media to joomla"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -2700,
+        920
+      ],
+      "id": "250c417c-3d08-47f0-a77d-d667e51e2ce9",
+      "name": "Split Out"
+    },
     {
       "parameters": {
         "public": true,
@@ -14,12 +460,12 @@
           "allowFileUploads": true
         }
       },
-      "id": "891d02e1-a515-4951-a5e2-e491d153d129",
+      "id": "c7a52126-48f1-45f1-b872-97b4a063f2ee",
       "name": "When chat message received",
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "position": [
-        0,
-        0
+        -5420,
+        920
       ],
       "webhookId": "095537c6-b21a-4cb2-8312-13b1bf1699dc",
       "typeVersion": 1.1
@@ -30,23 +476,23 @@
           "systemMessage": "=You are an AI-powered chatbot assistant for a website. Your primary function is to assist users by answering their queries and providing relevant information. You have access to a web_search tool that allows you to browse the internet for up-to-date information. Here's how you should operate:\n\n1. Website Information:\nFamiliarize yourself with this information about the website you're assisting. Use this as context for user interactions.\n\n2. Web Search Tool:\nYou have access to a web_search tool that can browse the internet. To use it, write the variable {web_search_question}. The tool will return relevant search results.\n\n3. Handling User Queries:\nWhen a user asks a question, follow these steps:\na) Analyze the query to determine if it's related to the website or requires external information.\nb) If the query is about the website, use the provided website information to answer.\nc) If external information is needed, use the web_search tool to find relevant data.\n\n4. Using web_search:\n- Use web_search for factual, current information that isn't provided in the website info.\n- Formulate clear, concise search queries.\n- If the first search doesn't yield useful results, refine your query and search again.\n- Limit searches to a maximum of three per user query to maintain efficiency.\n\n5. Using Think:\n- Using Think tool to think about something. It will not obtain new information or change the database, but just append the thought to the log. Use it when complex reasoning or some cache memory is needed.\n\n6. Formulating Responses:\n- Begin with information from the website if relevant.\n- Incorporate web search results to provide up-to-date, accurate information.\n- Summarize findings concisely and coherently.\n- If you're unsure or can't find reliable information, be honest about limitations.\n\n7. Ethical Considerations:\n- Respect user privacy. Don't ask for or store personal information.\n- Provide factual information. Avoid speculation or unverified claims.\n- If asked about controversial topics, strive for a balanced, neutral response.\n- Don't engage in or encourage illegal activities.\n\n8. Output Format:\nDo not include your thought process, web searches, or any other tags in the final output.\n\n9. Code Formatting:\n- Always use proper markdown formatting for code blocks\n- Use triple backticks (```) with language specification: ```javascript, ```python, ```json\n- Use single backticks (`) for inline code\n- Ensure proper indentation and spacing\n- Add blank lines before and after code blocks for better readability.\n -\"Always format JSON with proper indentation\"\n -\"Use triple backticks with 'json' language specification\"\n -\"Never output minified or compressed JSON\""
         }
       },
-      "id": "df9aa7a3-e0f1-4e86-a635-f1e17d51890f",
+      "id": "0a4d2fc2-c5bf-441a-b29c-573f0a743cdd",
       "name": "AI Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "position": [
-        320,
-        0
+        -5100,
+        920
       ],
       "typeVersion": 1.9
     },
     {
       "parameters": {},
-      "id": "dbf40be6-56be-4866-ade3-93927933ed14",
+      "id": "97e93705-1fa1-4ff2-a19d-f7b9189753ca",
       "name": "Simple Memory",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "position": [
-        340,
-        220
+        -5080,
+        1140
       ],
       "typeVersion": 1.3
     },
@@ -75,12 +521,12 @@
         "jsonBody": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('JSON', `{\n  \"model\": \"claude-3-7-sonnet-latest\",\n  \"max_tokens\": 1024,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{web_search_question}\"\n    }\n  ],\n  \"tools\": [\n    {\n      \"type\": \"web_search_20250305\",\n      \"name\": \"web_search\",\n      \"max_uses\": 5\n    }\n  ]\n}\n`, 'json') }}",
         "options": {}
       },
-      "id": "44d2dc95-c013-4252-a776-33f181377445",
+      "id": "64f3b275-9e14-4717-a2f0-d08db2cb63ab",
       "name": "web_search",
       "type": "n8n-nodes-base.httpRequestTool",
       "position": [
-        580,
-        220
+        -4960,
+        1140
       ],
       "typeVersion": 4.2,
       "credentials": {
@@ -92,14 +538,42 @@
     },
     {
       "parameters": {},
-      "id": "10147be3-8e39-42ab-9256-8ca957ab2dfb",
+      "id": "4d760578-faac-4d27-b524-9aef8fb833df",
       "name": "Think",
       "type": "@n8n/n8n-nodes-langchain.toolThink",
       "position": [
-        460,
-        220
+        -4840,
+        1140
       ],
       "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-4-20250514",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 4"
+        },
+        "options": {
+          "maxTokensToSample": 1024,
+          "thinking": false
+        }
+      },
+      "id": "233e18be-0020-4d59-8a47-ed9c50b3638b",
+      "name": "Anthropic Chat Model2",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "position": [
+        -5420,
+        1680
+      ],
+      "typeVersion": 1.3,
+      "credentials": {
+        "anthropicApi": {
+          "id": "l8nsyOPKZPhdPs1R",
+          "name": "Anthropic account"
+        }
+      }
     },
     {
       "parameters": {
@@ -109,11 +583,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        80,
-        220
+        -5200,
+        1140
       ],
-      "id": "fdf97be5-c7b3-4d91-9ceb-a94fa49ba31d",
-      "name": "Google Gemini Chat Model",
+      "id": "abdff0fd-9f10-4cdb-bf1f-2e7b4f18b215",
+      "name": "Google Gemini Chat Model4",
       "credentials": {
         "googlePalmApi": {
           "id": "98JqTQmfb8tBNsCz",
@@ -123,6 +597,253 @@
     }
   ],
   "connections": {
+    "Combine AI Research": {
+      "main": [
+        [
+          {
+            "node": "Generate Comprehensive Article",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Content for Joomla": {
+      "main": [
+        [
+          {
+            "node": "Publish to Joomla (API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish to Joomla (API)": {
+      "main": [
+        [
+          {
+            "node": "Comprehensive Workflow Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Trends Research (GPT-4 with Web)": {
+      "main": [
+        [
+          {
+            "node": "Combine AI Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Trends Research (GPT-4 with Web)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Best Practices Research Anthropic",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Best Practices Research Anthropic": {
+      "main": [
+        [
+          {
+            "node": "Combine AI Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Expert Analysis Gemini",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Expert Analysis Gemini": {
+      "main": [
+        [
+          {
+            "node": "Combine AI Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Comprehensive Article",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Comprehensive Article": {
+      "main": [
+        [
+          {
+            "node": "Hallucination/Fact check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Hallucination/Fact check",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "SEO Meta data",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hallucination/Fact check": {
+      "main": [
+        [
+          {
+            "node": "SEO Meta data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEO Meta data": {
+      "main": [
+        [
+          {
+            "node": "Extract H2,s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Gemini Vision",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Vision": {
+      "main": [
+        [
+          {
+            "node": "Upload media to joomla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract H2,s": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inject <figure> markup": {
+      "main": [
+        [
+          {
+            "node": "Format Content for Joomla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload media to joomla": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Inject <figure> markup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Gemini Vision",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "When chat message received": {
       "main": [
         [
@@ -167,12 +888,33 @@
         ]
       ]
     },
-    "Google Gemini Chat Model": {
+    "Google Gemini Chat Model4": {
       "ai_languageModel": [
         [
           {
             "node": "AI Agent",
             "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "AI Trends Research (GPT-4 with Web)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Best Practices Research Anthropic",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Expert Analysis Gemini",
+            "type": "main",
             "index": 0
           }
         ]
@@ -183,9 +925,11 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "62595539-f9a7-47d9-ba9c-55d44e061e8f",
+  "versionId": "791f735a-9764-4150-845a-3cceee12fbe4",
   "triggerCount": 0,
   "tags": []
 }
